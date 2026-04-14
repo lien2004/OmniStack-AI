@@ -1,0 +1,28 @@
+# IDE
+.idea/
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# Temp files
+temp/
+tmp/
+*.tmp
+
+# Uploads (如果包含用户上传的大文件)
+uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# 忽略日志和临时文件
+logs/
+temp/
+uploads/
+target/
+*.log
+*.tmp
+*.bin

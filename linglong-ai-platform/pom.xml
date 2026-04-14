@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.linglong</groupId>
+    <artifactId>linglong-ai-platform</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>LingLong AI Platform</name>
+    <description>AI驱动的软件开发平台 - 玲珑</description>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        
+        <!-- Spring Boot -->
+        <spring-boot.version>3.2.0</spring-boot.version>
+        <spring-cloud.version>2023.0.0</spring-cloud.version>
+        
+        <!-- Spring AI -->
+        <spring-ai.version>0.8.0-SNAPSHOT</spring-ai.version>
+        
+        <!-- LangChain4j -->
+        <langchain4j.version>0.25.0</langchain4j.version>
+        
+        <!-- Database -->
+        <postgresql.version>42.7.1</postgresql.version>
+        <mybatis-plus.version>3.5.5</mybatis-plus.version>
+        
+        <!-- Tools -->
+        <lombok.version>1.18.30</lombok.version>
+        <hutool.version>5.8.23</hutool.version>
+        <fastjson2.version>2.0.43</fastjson2.version>
+        
+        <!-- MCP -->
+        <mcp.version>0.1.0</mcp.version>
+        
+        <!-- Apache Tika -->
+        <tika.version>2.9.1</tika.version>
+    </properties>
+
+    <modules>
+        <module>linglong-common</module>
+        <module>linglong-llm-core</module>
+        <module>linglong-mcp-server</module>
+        <module>linglong-agent</module>
+        <module>linglong-engine</module>
+        <module>linglong-project</module>
+        <module>linglong-infra</module>
+        <module>linglong-gateway</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring Boot BOM -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <!-- Spring Cloud BOM -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <!-- Spring AI BOM -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            
+            <!-- Internal Modules -->
+            <dependency>
+                <groupId>com.linglong</groupId>
+                <artifactId>linglong-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.linglong</groupId>
+                <artifactId>linglong-llm-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.linglong</groupId>
+                <artifactId>linglong-mcp-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.linglong</groupId>
+                <artifactId>linglong-agent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.linglong</groupId>
+                <artifactId>linglong-engine</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.linglong</groupId>
+                <artifactId>linglong-infra</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            
+            <!-- LangChain4j -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-open-ai</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+            
+            <!-- MyBatis Plus -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+            
+            <!-- PostgreSQL -->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+            </dependency>
+            
+            <!-- Hutool -->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            
+            <!-- Fastjson2 -->
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson2.version}</version>
+            </dependency>
+            
+            <!-- Apache Tika - 文档解析 -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parsers-standard-package</artifactId>
+                <version>${tika.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <configuration>
+                        <source>21</source>
+                        <target>21</target>
+                        <parameters>true</parameters>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+</project>

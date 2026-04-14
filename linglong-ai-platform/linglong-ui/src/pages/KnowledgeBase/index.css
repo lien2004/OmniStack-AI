@@ -1,0 +1,157 @@
+.kb-page {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow: auto;
+  background: #f5f7fa;
+}
+
+/* Header */
+.kb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.kb-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.kb-header-icon {
+  font-size: 32px;
+  color: #1677ff;
+  background: #e6f4ff;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.kb-header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.kb-header-sub {
+  font-size: 13px;
+  color: #8c8c8c;
+  margin-top: 2px;
+}
+
+.kb-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.kb-stat-card {
+  min-width: 140px;
+  border-radius: 8px;
+}
+
+/* Body */
+.kb-body {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Upload panel */
+.kb-upload-panel {
+  width: 280px;
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.kb-panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.kb-category-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kb-label {
+  font-size: 12px;
+  color: #595959;
+}
+
+.kb-dragger {
+  border-radius: 8px !important;
+}
+
+.kb-upload-tips {
+  background: #f6f8fa;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kb-tip-item {
+  font-size: 12px;
+  color: #8c8c8c;
+  line-height: 1.5;
+}
+
+/* Content panel */
+.kb-content-panel {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.kb-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.kb-toolbar-left {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.kb-toolbar-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Table */
+.kb-table {
+  flex: 1;
+  overflow: auto;
+}
+
+.kb-table .ant-table-tbody > tr:hover > td {
+  background: #f0f7ff;
+}

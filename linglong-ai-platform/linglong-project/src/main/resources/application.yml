@@ -1,0 +1,68 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: linglong-project
+  
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: your-password
+      database: 0
+      timeout: 60000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+
+  # PostgreSQL数据库配置
+  datasource:
+    url: jdbc:postgresql://localhost:5432/linglong
+    username: postgres
+    password: 20041212
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    defer-datasource-initialization: true
+  
+  # 初始化SQL
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/data.sql
+
+# SpringDoc OpenAPI配置
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
+# 日志配置
+logging:
+  level:
+    com.linglong: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

@@ -1,0 +1,87 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: linglong-agent
+  
+  # PostgreSQL数据库配置
+  datasource:
+    url: jdbc:postgresql://localhost:5432/linglong
+    username: postgres
+    password: 20041212
+    driver-class-name: org.postgresql.Driver
+  
+  # Redis配置 - 用于Agent上下文共享
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      # password: your-password  # 如果Redis没有设置密码，请注释掉此行
+      database: 2
+      timeout: 60000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+  
+  # Spring AI OpenAI 配置（使用灵龙AI/CodeFlow兼容OpenAI格式）
+  ai:
+    openai:
+      base-url: https://codeflow.asia/v1
+      api-key: your-api-key
+      chat:
+        options:
+          model: gpt-5.4-mini
+
+# LLM服务配置（调用llm-core服务）
+llm:
+  service:
+    url: http://localhost:8084
+    timeout: 120000
+
+# 智谱AI配置（用于向量存储）
+zhipu:
+  api-key: your-api-key
+  embedding:
+    model: embedding-3
+
+# 百炼/灵龙AI配置（用于LLM对话）
+bailian:
+  base-url: https://codeflow.asia/v1
+  api-key: your-api-key
+  model: gpt-5.4-mini
+
+# MCP Server配置
+mcp:
+  server:
+    url: http://localhost:8083
+
+# Agent配置
+agent:
+  # 工作流配置
+  workflow:
+    # 最大并行执行数
+    max-parallel: 3
+    # 单步超时时间(秒)
+    step-timeout: 300
+  # 上下文配置
+  context:
+    # 上下文过期时间(小时)
+    expire-hours: 24
+  # 文件上传配置
+  upload:
+    # 上传文件保存路径
+    path: ./uploads
+  # 输出保存配置
+  output:
+    # 执行结果默认保存路径
+    path: ./outputs
+
+# 日志配置
+logging:
+  level:
+    com.linglong.agent: DEBUG
+    org.springframework.data.redis: DEBUG

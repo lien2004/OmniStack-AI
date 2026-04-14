@@ -1,0 +1,85 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: linglong-gateway
+  
+  # Redis配置 - 用于网关限流、Token黑名单等
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: your-password
+      database: 2
+      timeout: 60000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+  
+  cloud:
+    gateway:
+      routes:
+        # 认证服务路由
+        - id: linglong-auth
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=0
+        
+        # 项目管理服务路由
+        - id: linglong-project
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/v1/projects/**, /api/v1/agents/**, /api/v1/generate/**
+          filters:
+            - StripPrefix=0
+        
+        # LLM Core服务路由
+        - id: linglong-llm-core
+          uri: http://localhost:8084
+          predicates:
+            - Path=/ai/**
+          filters:
+            - StripPrefix=0
+        
+        # MCP服务路由
+        - id: linglong-mcp
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/v1/mcp/**
+          filters:
+            - StripPrefix=0
+      
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: false
+      
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+
+# JWT配置
+jwt:
+  secret: your-secret-key-here
+  expiration: 86400000
+
+# 网关限流配置
+rate-limiter:
+  enabled: true
+  default-rate: 100  # 每秒请求数
+  default-burst: 200  # 突发流量
+
+# 日志配置
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.data.redis: DEBUG
+    reactor.netty: INFO

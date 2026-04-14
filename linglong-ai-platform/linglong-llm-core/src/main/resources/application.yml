@@ -1,0 +1,122 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: linglong-llm-core
+  
+  # 文件上传配置
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB       # 单个文件最大 100MB
+      max-request-size: 110MB   # 请求体最大 110MB
+  
+  # 排除 Ollama 自动配置
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.autoconfigure.ollama.OllamaAutoConfiguration
+  
+  # PostgreSQL数据库配置 - 用于向量存储
+  datasource:
+    url: jdbc:postgresql://localhost:5432/linglong
+    username: postgres
+    password: 20041212
+    driver-class-name: org.postgresql.Driver
+  
+  # Redis配置 - 用于缓存对话历史、Token使用量等
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: your-password
+      database: 1
+      timeout: 60000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+  
+  # Spring AI配置
+  ai:
+    openai:
+      # 智谱AI OpenAI 兼容接口 - 仅用于聊天（Chat）
+      api-key: your-api-key
+      base-url: https://open.bigmodel.cn/api/paas
+      embedding:
+        enabled: false  # 关闭 Spring AI 内置 OpenAI Embedding，改用自定义 ZhipuEmbeddingClient
+
+# ========== MySQL配置 - 对话历史持久化 ==========
+chat:
+  datasource:
+    url: jdbc:mysql://localhost:3306/linglong_chat?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: 20041212
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# ========== 当前使用：CodeFlow 灵龙AI ==========
+bailian:
+  base-url: https://codeflow.asia/v1
+  api-key: your-api-key
+  model: gpt-5.4-mini
+  display-name: 灵龙AI
+
+# ========== 多模型路由配置 ==========
+# 模型提供商路由：GLM系列 → 智谱AI; gpt/linglong系列 → CodeFlow/灵龙AI
+model:
+  routing:
+    zhipu-models: glm  # 以glm开头的模型路由到智谱AI
+    linglong-models: gpt,linglong  # 路由到CodeFlow/灵龙AI
+
+# 向量存储配置
+vector:
+  store:
+    dimensions: 1024   # 智谱 embedding-3 向量维度
+    table-name: vector_store
+    initialize-schema: false  # schema 已由 init-pgvector.sql 手动初始化，禁止每次启动重建（会破坏 vector_store VIEW）
+  
+# 智谱AI配置
+zhipu:
+  api-key: your-api-key
+  model: glm-4.6
+  temperature: 0.7
+  max-tokens: 2000
+  embedding:
+    model: embedding-3  # 向量检索用模型，1024 维
+
+# 对话向量缓存配置
+conversation:
+  cache:
+    similarity-threshold: 0.85
+  history:
+    max-messages: 20  # 每次寻叶最多加载的历史消息条数
+
+# LLM服务配置
+llm:
+  default-provider: openai
+  cache:
+    enabled: true
+    ttl: 3600
+  rate-limit:
+    enabled: true
+    requests-per-minute: 60
+
+# MCP Server 配置
+mcp:
+  server:
+    url: http://localhost:8083
+
+# 日志配置
+logging:
+  level:
+    com.linglong.llm: DEBUG
+    org.springframework.ai: DEBUG
+    org.springframework.data.redis: DEBUG
+  file:
+    name: logs/linglong-llm-core.log
+  logback:
+    rollingpolicy:
+      max-file-size: 20MB
+      max-history: 7
