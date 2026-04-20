@@ -1,6 +1,9 @@
 package com.linglong.project.controller;
 
 import com.linglong.common.result.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +13,7 @@ import java.util.*;
 /**
  * 项目管理控制器
  */
+@Tag(name = "项目管理", description = "项目的增删改查操作")
 @RestController
 @RequestMapping("/api/projects")
 public class ProjectController {
@@ -22,6 +26,7 @@ public class ProjectController {
     /**
      * 创建项目
      */
+    @Operation(summary = "创建项目")
     @PostMapping
     public Result<Project> createProject(@RequestBody CreateProjectRequest request) {
         String projectId = UUID.randomUUID().toString();
@@ -45,11 +50,12 @@ public class ProjectController {
     /**
      * 获取项目列表
      */
+    @Operation(summary = "获取项目列表", description = "支持按状态过滤和分页")
     @GetMapping
     public Result<List<Project>> getProjects(
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @Parameter(description = "项目状态过滤") @RequestParam(required = false) String status,
+            @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "每页数量") @RequestParam(defaultValue = "10") int size) {
 
         List<Project> list = projects.values().stream()
                 .filter(p -> status == null || status.equals(p.getStatus()))
@@ -62,6 +68,7 @@ public class ProjectController {
     /**
      * 获取项目详情
      */
+    @Operation(summary = "获取项目详情")
     @GetMapping("/{projectId}")
     public Result<Project> getProject(@PathVariable String projectId) {
         Project project = projects.get(projectId);
@@ -74,6 +81,7 @@ public class ProjectController {
     /**
      * 更新项目
      */
+    @Operation(summary = "更新项目")
     @PutMapping("/{projectId}")
     public Result<Project> updateProject(
             @PathVariable String projectId,
@@ -101,6 +109,7 @@ public class ProjectController {
     /**
      * 删除项目
      */
+    @Operation(summary = "删除项目")
     @DeleteMapping("/{projectId}")
     public Result<Void> deleteProject(@PathVariable String projectId) {
         projects.remove(projectId);

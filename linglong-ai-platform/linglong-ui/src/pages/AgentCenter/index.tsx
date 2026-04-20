@@ -444,7 +444,19 @@ function AgentCenter() {
   }
 
   return (
-    <div className="agent-center" style={{ padding: '0 4px' }}>
+    <div className="agent-center">
+      {/* 页面标题区 */}
+      <div className="g-page-header">
+        <div className="g-page-header-left">
+          <h1 className="g-page-title">智能体中心</h1>
+          <p className="g-page-subtitle">创建、配置与运行 AI 智能体，支持全链路智能软件开发工作流</p>
+        </div>
+        <Button type="primary" size="large" icon={<ThunderboltOutlined />} onClick={openWorkflowModal}>
+          启动全AI开发
+        </Button>
+      </div>
+
+      <div style={{ padding: '24px 32px' }}>
       {/* 全智能开发入口 */}
       <Card
         style={{ marginBottom: 24, borderRadius: 12 }}
@@ -868,6 +880,7 @@ function AgentCenter() {
           </div>
         )}
       </Modal>
+      </div>
     </div>
   )
 }

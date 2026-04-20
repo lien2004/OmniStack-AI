@@ -8,6 +8,8 @@ import com.linglong.project.repository.DatabaseConfigRepository;
 import com.linglong.project.repository.LlmProviderRepository;
 import com.linglong.project.repository.PlatformSettingsRepository;
 import com.linglong.project.service.DatabaseConnectionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import java.util.*;
 /**
  * 平台设置控制器
  */
+@Tag(name = "平台设置", description = "平台基本设置、LLM 厂商配置、数据库配置、安全设置")
 @Slf4j
 @RestController
 @RequestMapping("/settings")
@@ -30,6 +33,7 @@ public class SettingsController {
 
     // ==================== 平台基本设置 ====================
     
+    @Operation(summary = "获取平台基本设置")
     @GetMapping("/platform")
     public Result<Map<String, Object>> getPlatformSettings() {
         Map<String, Object> settings = new HashMap<>();
@@ -49,6 +53,7 @@ public class SettingsController {
         return Result.success(settings);
     }
 
+    @Operation(summary = "保存平台基本设置")
     @PostMapping("/platform")
     public Result<Void> savePlatformSettings(@RequestBody Map<String, Object> settings) {
         // 保存基本设置
@@ -61,11 +66,13 @@ public class SettingsController {
 
     // ==================== LLM厂商配置 ====================
     
+    @Operation(summary = "获取 LLM 厂商列表", description = "返回所有已启用的 LLM 厂商配置")
     @GetMapping("/llm/providers")
     public Result<List<LlmProvider>> getLlmProviders() {
         return Result.success(llmProviderRepository.findByEnabledTrue());
     }
 
+    @Operation(summary = "保存 LLM 厂商配置")
     @PostMapping("/llm/providers")
     public Result<LlmProvider> saveLlmProvider(@RequestBody LlmProvider provider) {
         if (provider.getIsDefault() != null && provider.getIsDefault()) {
@@ -79,6 +86,7 @@ public class SettingsController {
         return Result.success(saved);
     }
 
+    @Operation(summary = "删除 LLM 厂商配置")
     @DeleteMapping("/llm/providers/{id}")
     public Result<Void> deleteLlmProvider(@PathVariable Long id) {
         llmProviderRepository.deleteById(id);
@@ -87,23 +95,27 @@ public class SettingsController {
 
     // ==================== 数据库配置 ====================
     
+    @Operation(summary = "获取数据库配置列表")
     @GetMapping("/database")
     public Result<List<DatabaseConfig>> getDatabaseConfigs() {
         return Result.success(databaseConfigRepository.findByEnabledTrue());
     }
 
+    @Operation(summary = "保存数据库配置")
     @PostMapping("/database")
     public Result<DatabaseConfig> saveDatabaseConfig(@RequestBody DatabaseConfig config) {
         DatabaseConfig saved = databaseConfigRepository.save(config);
         return Result.success(saved);
     }
 
+    @Operation(summary = "删除数据库配置")
     @DeleteMapping("/database/{id}")
     public Result<Void> deleteDatabaseConfig(@PathVariable Long id) {
         databaseConfigRepository.deleteById(id);
         return Result.success();
     }
 
+    @Operation(summary = "测试数据库连接")
     @PostMapping("/database/test")
     public Result<Map<String, Object>> testDatabaseConnection(@RequestBody DatabaseConfig config) {
         Map<String, Object> result = databaseConnectionService.testConnection(
@@ -117,6 +129,7 @@ public class SettingsController {
         return Result.success(result);
     }
 
+    @Operation(summary = "获取数据库详细信息")
     @GetMapping("/database/{id}/info")
     public Result<Map<String, Object>> getDatabaseInfo(@PathVariable Long id) {
         Optional<DatabaseConfig> configOpt = databaseConfigRepository.findById(id);
@@ -138,6 +151,7 @@ public class SettingsController {
 
     // ==================== 安全设置 ====================
     
+    @Operation(summary = "获取安全设置")
     @GetMapping("/security")
     public Result<Map<String, Object>> getSecuritySettings() {
         Map<String, Object> settings = new HashMap<>();
@@ -153,6 +167,7 @@ public class SettingsController {
         return Result.success(settings);
     }
 
+    @Operation(summary = "保存安全设置")
     @PostMapping("/security")
     public Result<Void> saveSecuritySettings(@RequestBody Map<String, Object> settings) {
         saveSetting("security", "json", toJson(settings));

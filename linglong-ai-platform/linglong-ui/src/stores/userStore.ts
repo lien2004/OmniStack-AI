@@ -1,13 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-interface User {
+export interface User {
   id: number
   username: string
-  nickname: string
-  email: string
-  role: string
-  avatar?: string
+  mobile?: string
+  role: number // 0=普通用户, 1=系统管理员
 }
 
 interface UserState {
@@ -17,6 +15,7 @@ interface UserState {
   setToken: (token: string) => void
   logout: () => void
   isAuthenticated: () => boolean
+  isAdmin: () => boolean
 }
 
 export const useUserStore = create<UserState>()(
@@ -31,11 +30,16 @@ export const useUserStore = create<UserState>()(
       },
       logout: () => {
         localStorage.removeItem('token')
+        localStorage.removeItem('user-storage')
         set({ user: null, token: null })
       },
       isAuthenticated: () => {
         const state = get()
         return !!state.token && !!state.user
+      },
+      isAdmin: () => {
+        const state = get()
+        return state.user?.role === 1
       },
     }),
     {

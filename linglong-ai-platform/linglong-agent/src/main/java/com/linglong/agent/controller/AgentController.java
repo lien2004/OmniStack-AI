@@ -7,6 +7,9 @@ import com.linglong.agent.service.AgentService;
 import com.linglong.agent.service.AgentStatsService;
 import com.linglong.agent.service.FileStorageService;
 import com.linglong.common.result.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -21,8 +24,9 @@ import java.util.UUID;
 
 /**
  * Agent控制器
- * 提供Agent相关的REST API
+ * 提供 Agent 相关的 REST API
  */
+@Tag(name = "Agent 服务", description = "智能 Agent 执行（同步/流式/文件上传）、工作流管理、Agent 配置与统计")
 @RestController("agentModuleController")
 @RequestMapping("/api/agent")
 public class AgentController {
@@ -45,6 +49,7 @@ public class AgentController {
     /**
      * 获取所有Agent列表
      */
+    @Operation(summary = "获取 Agent 列表")
     @GetMapping("/list")
     public Result<List<AgentService.AgentInfo>> listAgents() {
         return Result.success(agentService.getAllAgents());
@@ -53,6 +58,7 @@ public class AgentController {
     /**
      * 获取所有Agent详细信息（包含统计和配置）
      */
+    @Operation(summary = "获取 Agent 详细列表（含统计和配置）")
     @GetMapping("/list/detail")
     public Result<List<AgentService.AgentDetailInfo>> listAgentDetails() {
         return Result.success(agentService.getAllAgentDetails());
@@ -61,6 +67,7 @@ public class AgentController {
     /**
      * 获取单个Agent详情
      */
+    @Operation(summary = "获取单个 Agent 详情")
     @GetMapping("/{agentName}")
     public Result<AgentService.AgentInfo> getAgent(@PathVariable String agentName) {
         AgentService.AgentInfo info = agentService.getAgentInfo(agentName);
@@ -73,6 +80,7 @@ public class AgentController {
     /**
      * 执行单个Agent（同步）
      */
+    @Operation(summary = "同步执行 Agent", description = "同步调用指定 Agent，等待执行完成后返回结果")
     @PostMapping("/{agentName}/execute")
     public Result<AgentResult> executeAgent(
             @PathVariable String agentName,
@@ -113,6 +121,7 @@ public class AgentController {
     /**
      * 执行单个Agent（带文件上传）
      */
+    @Operation(summary = "带文件上传执行 Agent", description = "文件内容会自动附加到 input 中一并提交给 Agent")
     @PostMapping(value = "/{agentName}/execute-with-files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Result<AgentResult> executeAgentWithFiles(
             @PathVariable String agentName,
@@ -189,6 +198,7 @@ public class AgentController {
     /**
      * 流式执行Agent（SSE）
      */
+    @Operation(summary = "SSE 流式执行 Agent", description = "服务端推送事件流，实时输出 Agent 执行结果")
     @PostMapping(value = "/{agentName}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> executeAgentStream(
             @PathVariable String agentName,
@@ -222,6 +232,7 @@ public class AgentController {
     /**
      * 启动标准工作流
      */
+    @Operation(summary = "启动标准工作流")
     @PostMapping("/workflow/start")
     public Result<AgentService.WorkflowInfo> startWorkflow(@RequestBody Map<String, Object> request) {
         log.info("收到工作流启动请求");
@@ -246,6 +257,7 @@ public class AgentController {
     /**
      * 获取工作流状态
      */
+    @Operation(summary = "获取工作流状态")
     @GetMapping("/workflow/{workflowId}")
     public Result<AgentService.WorkflowInfo> getWorkflowStatus(@PathVariable String workflowId) {
         AgentService.WorkflowInfo info = agentService.getWorkflowStatus(workflowId);
@@ -260,6 +272,7 @@ public class AgentController {
     /**
      * 获取Agent统计信息
      */
+    @Operation(summary = "获取 Agent 统计信息")
     @GetMapping("/{agentName}/stats")
     public Result<Map<String, Object>> getAgentStats(@PathVariable String agentName) {
         Map<String, Object> stats = statsService.getAgentStats(agentName);
@@ -269,6 +282,7 @@ public class AgentController {
     /**
      * 启用Agent
      */
+    @Operation(summary = "启用 Agent")
     @PostMapping("/{agentName}/enable")
     public Result<Void> enableAgent(@PathVariable String agentName) {
         statsService.setAgentEnabled(agentName, true);
@@ -278,6 +292,7 @@ public class AgentController {
     /**
      * 禁用Agent
      */
+    @Operation(summary = "禁用 Agent")
     @PostMapping("/{agentName}/disable")
     public Result<Void> disableAgent(@PathVariable String agentName) {
         statsService.setAgentEnabled(agentName, false);
@@ -287,6 +302,7 @@ public class AgentController {
     /**
      * 获取Agent配置
      */
+    @Operation(summary = "获取 Agent 配置")
     @GetMapping("/{agentName}/config")
     public Result<AgentConfig> getAgentConfig(@PathVariable String agentName) {
         AgentConfig config = configService.getConfig(agentName);
@@ -301,6 +317,7 @@ public class AgentController {
     /**
      * 保存Agent配置
      */
+    @Operation(summary = "保存 Agent 配置")
     @PostMapping("/{agentName}/config")
     public Result<Void> saveAgentConfig(@PathVariable String agentName, @RequestBody AgentConfig config) {
         config.setAgentName(agentName);
@@ -311,6 +328,7 @@ public class AgentController {
     /**
      * 更新Agent配置
      */
+    @Operation(summary = "更新 Agent 配置（部分更新）")
     @PutMapping("/{agentName}/config")
     public Result<Void> updateAgentConfig(@PathVariable String agentName, @RequestBody Map<String, Object> updates) {
         configService.updateConfig(agentName, updates);

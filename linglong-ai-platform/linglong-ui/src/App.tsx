@@ -9,6 +9,10 @@ import MCPHub from './pages/MCPHub'
 import Settings from './pages/Settings'
 import Chat from './pages/Chat'
 import KnowledgeBase from './pages/KnowledgeBase'
+import Login from './pages/Login'
+import Register from './pages/Login/Register'
+import Profile from './pages/Profile'
+import AdminUsers from './pages/AdminUsers'
 
 function App() {
   return (
@@ -23,7 +27,11 @@ function App() {
         <Route path="agents" element={<AgentCenter />} />
         <Route path="mcp" element={<MCPHub />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="admin/users" element={<AdminUsers />} />
       </Route>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

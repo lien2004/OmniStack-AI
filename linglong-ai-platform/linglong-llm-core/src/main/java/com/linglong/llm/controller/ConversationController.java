@@ -3,6 +3,8 @@ package com.linglong.llm.controller;
 import com.linglong.llm.service.ChatHistoryService;
 import com.linglong.llm.service.MultiModelChatService;
 import com.linglong.llm.service.VectorStoreService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
  * DELETE /ai/conversation/sessions/{id}  删除会话
  * </pre>
  */
+@Tag(name = "智能对话（多轮+RAG）", description = "支持 RAG、多模型路由、流式输出、MySQL 持久化历史的对话接口")
 @RestController
 @RequestMapping("/ai/conversation")
 @ConditionalOnProperty(name = "chat.datasource.url")  // 仅当配置了 MySQL 时激活
@@ -45,9 +48,17 @@ public class ConversationController {
     @Autowired(required = false)
     private VectorStoreService vectorStoreService;
 
-    /** 对话向量缓存相似度阈値（默认 0.85） */
-    @Value("${conversation.cache.similarity-threshold:0.85}")
+    /** 对话向量缓存相似度阈値（默认 0.80） */
+    @Value("${conversation.cache.similarity-threshold:0.80}")
     private double cacheThreshold;
+
+    /** RAG 检索知识库条数（默认 5） */
+    @Value("${rag.retrieval.top-k:5}")
+    private int ragTopK;
+
+    /** 对话缓存候选检索数（默认 10） */
+    @Value("${conversation.cache.candidate-size:10}")
+    private int cacheCandidateSize;
 
     // =====================================================================
     // 同步对话
@@ -67,6 +78,7 @@ public class ConversationController {
      * }
      * </pre>
      */
+    @Operation(summary = "同步多轮对话", description = "支持 RAG 和对话历史，可命中向量缓存直接返回")
     @PostMapping("/chat")
     public ResponseEntity<Map<String, Object>> chat(@RequestBody ConversationRequest req) {
         log.info("同步对话请求 chatId={} model={} useRag={}", req.getChatId(), req.getModel(), req.isUseRag());
@@ -123,6 +135,7 @@ public class ConversationController {
      * SSE 流式对话
      * 前端使用 fetch + ReadableStream 消费 text/event-stream
      */
+    @Operation(summary = "SSE 流式对话", description = "服务端推送事件流，实时流式输出回答")
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamChat(@RequestBody ConversationRequest req) {
         log.info("流式对话请求 chatId={} model={} useRag={}", req.getChatId(), req.getModel(), req.isUseRag());
@@ -185,26 +198,26 @@ public class ConversationController {
     // 历史记录管理
     // =====================================================================
 
-    /** 获取指定会话的完整历史记录 */
+    @Operation(summary = "获取会话历史记录", description = "获取指定 chatId 的完整对话历史")
     @GetMapping("/history/{chatId}")
     public ResponseEntity<List<Map<String, Object>>> getHistory(@PathVariable String chatId) {
         return ResponseEntity.ok(chatHistoryService.getHistory(chatId));
     }
 
-    /** 获取所有会话列表（用于侧边栏展示） */
+    @Operation(summary = "获取所有会话列表", description = "用于侧边栏展示")
     @GetMapping("/sessions")
     public ResponseEntity<List<Map<String, Object>>> getSessions() {
         return ResponseEntity.ok(chatHistoryService.getAllSessions());
     }
 
-    /** 删除指定会话 */
+    @Operation(summary = "删除指定会话")
     @DeleteMapping("/sessions/{chatId}")
     public ResponseEntity<Void> deleteSession(@PathVariable String chatId) {
         chatHistoryService.deleteSession(chatId);
         return ResponseEntity.ok().build();
     }
 
-    /** 清空所有历史 */
+    @Operation(summary = "清空所有会话")
     @DeleteMapping("/sessions")
     public ResponseEntity<Void> clearAll() {
         chatHistoryService.clearAll();
@@ -226,7 +239,7 @@ public class ConversationController {
         // (1) RAG 检索增强（只取 knowledge/document 类型，过滤掉 conversation 缓存）
         if (useRag && vectorStoreService != null) {
             try {
-                List<Document> docs = vectorStoreService.similaritySearch(userMessage, 6);
+                List<Document> docs = vectorStoreService.similaritySearch(userMessage, ragTopK);
                 String ragContext = docs.stream()
                         .filter(doc -> !"conversation".equals(doc.getMetadata().get("type")))
                         .map(Document::getContent)
@@ -265,15 +278,27 @@ public class ConversationController {
     private Optional<String> tryCacheHit(String message) {
         if (vectorStoreService == null) return Optional.empty();
         try {
-            List<Document> candidates = vectorStoreService.similaritySearch(message, 5);
+            // 增加检索数量，提高缓存命中率（检索更多再过滤）
+            List<Document> candidates = vectorStoreService.similaritySearch(message, cacheCandidateSize);
+            log.debug("对话缓存检查 | 检索到 {} 条候选记录", candidates.size());
+
             return candidates.stream()
-                    .filter(doc -> "conversation".equals(doc.getMetadata().get("type")))
+                    .filter(doc -> {
+                        String type = (String) doc.getMetadata().get("type");
+                        boolean isConversation = "conversation".equals(type);
+                        if (!isConversation) {
+                            log.debug("对话缓存检查 | 过滤非对话类型: type={}", type);
+                        }
+                        return isConversation;
+                    })
                     .filter(doc -> {
                         Object distObj = doc.getMetadata().get("distance");
-                        double dist = distObj instanceof Number ? ((Number) distObj).doubleValue() : 0.0;
+                        double dist = distObj instanceof Number ? ((Number) distObj).doubleValue() : 1.0;
                         double similarity = 1.0 - dist;
-                        log.debug("对话缓存检查 | 相似度: {} | 阈値: {}", similarity, cacheThreshold);
-                        return similarity >= cacheThreshold;
+                        boolean hit = similarity >= cacheThreshold;
+                        log.info("对话缓存检查 | 问题: {} | 相似度: {:.4f} | 阈值: {} | 命中: {}",
+                                doc.getMetadata().get("question"), similarity, cacheThreshold, hit);
+                        return hit;
                     })
                     .map(doc -> (String) doc.getMetadata().get("answer"))
                     .filter(a -> a != null && !a.isBlank())
@@ -286,6 +311,7 @@ public class ConversationController {
 
     /**
      * 异步将问答对写入向量缓存
+     * 存储格式：content = 问题 + 答案（用于向量检索），metadata 存储结构化数据
      */
     private void saveToCacheAsync(String message, String answer, String model) {
         if (vectorStoreService == null) return;
@@ -297,8 +323,10 @@ public class ConversationController {
                 meta.put("answer", answer);
                 meta.put("model", model);
                 meta.put("createdAt", String.valueOf(System.currentTimeMillis()));
-                vectorStoreService.addDocument(message, meta);
-                log.info("问答对已异步写入向量缓存");
+                // 将问题和答案组合存储，便于向量检索时匹配
+                String content = "问题：" + message + "\n\n答案：" + answer;
+                vectorStoreService.addDocument(content, meta);
+                log.info("问答对已异步写入向量缓存，问题: {}", message);
             } catch (Exception e) {
                 log.warn("问答对写入向量缓存失败: {}", e.getMessage());
             }

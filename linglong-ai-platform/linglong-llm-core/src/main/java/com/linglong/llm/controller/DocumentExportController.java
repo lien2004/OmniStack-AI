@@ -1,5 +1,7 @@
 package com.linglong.llm.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.poi.xwpf.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +24,7 @@ import java.util.regex.Pattern;
  * 对话导出控制器
  * 将对话消息列表导出为格式化的 .docx 文档，支持 Markdown 内容渲染。
  */
+@Tag(name = "对话导出", description = "将对话记录导出为 DOCX 文件，支持 Markdown 格式渲染")
 @RestController
 @RequestMapping("/ai/document")
 public class DocumentExportController {
@@ -69,6 +72,7 @@ public class DocumentExportController {
 
     // ===== 接口 =====
 
+    @Operation(summary = "导出对话为 DOCX", description = "传入对话消息列表，返回 .docx 文件下载流")
     @PostMapping("/export")
     public ResponseEntity<byte[]> exportConversation(
             @RequestBody ExportRequest request) throws Exception {

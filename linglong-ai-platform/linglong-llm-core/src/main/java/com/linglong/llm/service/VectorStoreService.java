@@ -3,14 +3,18 @@ package com.linglong.llm.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.embedding.EmbeddingClient;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * 向量存储服务
@@ -22,10 +26,15 @@ public class VectorStoreService {
     private static final Logger log = LoggerFactory.getLogger(VectorStoreService.class);
 
     private final VectorStore vectorStore;
+    private final EmbeddingClient embeddingClient;
+    private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public VectorStoreService(VectorStore vectorStore) {
+    public VectorStoreService(VectorStore vectorStore, EmbeddingClient embeddingClient,
+                              @Qualifier("pgJdbcTemplate") JdbcTemplate jdbcTemplate) {
         this.vectorStore = vectorStore;
+        this.embeddingClient = embeddingClient;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     /**
@@ -68,14 +77,65 @@ public class VectorStoreService {
      *
      * @param query  查询文本
      * @param topK   返回结果数量
-     * @return 相似文档列表
+     * @return 相似文档列表（包含 distance 元数据）
      */
     public List<Document> similaritySearch(String query, int topK) {
         SearchRequest request = SearchRequest.query(query)
                 .withTopK(topK);
         List<Document> results = vectorStore.similaritySearch(request);
+
+        // PgVectorStore 不自动返回 distance，需要手动查询获取
+        // 使用 cosine_similarity_search 函数获取距离信息
+        results = enrichWithDistance(query, results);
+
         log.info("语义搜索完成, 查询: {}, 返回 {} 条结果", query, results.size());
         return results;
+    }
+
+    /**
+     * 使用 JDBC 查询获取文档的 distance 信息并 enrich 到 metadata
+     * 使用 PostgreSQL 的 <=> 操作符计算余弦距离
+     */
+    private List<Document> enrichWithDistance(String query, List<Document> documents) {
+        if (documents.isEmpty() || jdbcTemplate == null) {
+            return documents;
+        }
+
+        try {
+            // 获取查询文本的 embedding
+            List<List<Double>> embeddings = embeddingClient.embed(List.of(query));
+            if (embeddings.isEmpty()) {
+                return documents;
+            }
+            List<Double> queryEmbedding = embeddings.get(0);
+
+            // 构建向量字符串
+            StringBuilder vectorStr = new StringBuilder("[");
+            for (int i = 0; i < queryEmbedding.size(); i++) {
+                if (i > 0) vectorStr.append(",");
+                vectorStr.append(queryEmbedding.get(i));
+            }
+            vectorStr.append("]");
+
+            // 查询每个文档的 distance
+            for (Document doc : documents) {
+                try {
+                    String docId = doc.getId();
+                    // 使用 SQL 查询计算余弦距离
+                    String sql = "SELECT embedding <=> ?::vector as distance FROM vector_store WHERE id = ?::uuid";
+                    Double distance = jdbcTemplate.queryForObject(sql, Double.class, vectorStr.toString(), docId);
+                    if (distance != null) {
+                        doc.getMetadata().put("distance", distance);
+                        log.debug("文档 {} 的 distance: {}", docId, distance);
+                    }
+                } catch (Exception e) {
+                    log.warn("获取文档 {} 的 distance 失败: {}", doc.getId(), e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("获取 distance 信息失败: {}", e.getMessage());
+        }
+        return documents;
     }
 
     /**

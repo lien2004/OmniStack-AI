@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * OpenAPI配置
  */
-@Configuration
+@Configuration("projectOpenApiConfig")
 public class OpenApiConfig {
 
     @Bean

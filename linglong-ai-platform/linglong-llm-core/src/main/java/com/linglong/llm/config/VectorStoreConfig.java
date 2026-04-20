@@ -21,7 +21,7 @@ public class VectorStoreConfig {
     @Value("${vector.store.dimensions:1024}")
     private int dimensions;
 
-    @Value("${vector.store.initialize-schema:true}")
+    @Value("${vector.store.initialize-schema:false}")
     private boolean initializeSchema;
 
     @Value("${zhipu.api-key}")
@@ -68,13 +68,16 @@ public class VectorStoreConfig {
      */
     @Bean
     public VectorStore vectorStore(EmbeddingClient embeddingClient) {
+        // 注意：vector_store 是视图，指向 linglong 物理表
+        // 索引已在 linglong 表上创建（见 init-pgvector.sql）
+        // 因此 initializeSchema=false 且 indexType=NONE，避免在视图上创建索引
         return new PgVectorStore(
                 pgJdbcTemplate(),
                 embeddingClient,
                 dimensions,
                 PgVectorStore.PgDistanceType.COSINE_DISTANCE,
                 initializeSchema,
-                PgVectorStore.PgIndexType.HNSW
+                PgVectorStore.PgIndexType.NONE
         );
     }
 }

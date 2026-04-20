@@ -80,6 +80,14 @@ agent:
     # 执行结果默认保存路径
     path: ./outputs
 
+# SpringDoc OpenAPI配置
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
 # 日志配置
 logging:
   level:

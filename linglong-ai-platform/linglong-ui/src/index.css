@@ -42,3 +42,37 @@ pre {
 code {
   font-family: 'Fira Code', 'Consolas', monospace;
 }
+
+/* ===== 全局通用页面头部 ===== */
+.g-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 28px 32px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #ffffff;
+}
+
+.g-page-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.g-page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.g-page-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.g-page-body {
+  padding: 24px 32px;
+}

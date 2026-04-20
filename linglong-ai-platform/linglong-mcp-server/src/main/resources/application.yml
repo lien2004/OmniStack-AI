@@ -8,8 +8,8 @@ spring:
   # MySQL数据库配置
   datasource:
     url: jdbc:mysql://localhost:3306/linglong_mcp?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
-    username: root
-    password: 20041212
+    username: linglong
+    password: your-password
     driver-class-name: com.mysql.cj.jdbc.Driver
   
   # JPA配置
@@ -21,6 +21,14 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+
+# SpringDoc OpenAPI配置
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
 
 # 日志配置
 logging:

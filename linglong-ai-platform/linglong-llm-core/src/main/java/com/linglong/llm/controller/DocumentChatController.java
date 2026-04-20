@@ -3,6 +3,9 @@ package com.linglong.llm.controller;
 import com.linglong.llm.service.ChatHistoryService;
 import com.linglong.llm.service.MultiModelChatService;
 import com.linglong.llm.service.VectorStoreService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
@@ -50,6 +53,7 @@ import java.util.stream.Collectors;
  * POST /ai/document/upload/temp  上传临时文件，返回路径（供 MCP 工具使用）
  * </pre>
  */
+@Tag(name = "文档对话", description = "支持多格式文档上传和本地路径两种方式，提供同步/流式文档对话能力")
 @RestController
 @RequestMapping("/ai/document")
 public class DocumentChatController {
@@ -89,6 +93,7 @@ public class DocumentChatController {
      * 文件流上传对话（同步）
      * 接收 multipart/form-data：file + message + model + chatId + useRag
      */
+    @Operation(summary = "文件上传对话（同步）", description = "接收 multipart 文件，解析后同步返回 AI 回答")
     @PostMapping(value = "/chat", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> documentChat(
             @RequestParam("file") MultipartFile file,
@@ -126,6 +131,7 @@ public class DocumentChatController {
     /**
      * 文件流上传对话（SSE 流式）
      */
+    @Operation(summary = "文件上传对话（SSE 流式）", description = "接收 multipart 文件，流式推送 AI 回答")
     @PostMapping(value = "/stream", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
                  produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter documentStream(
@@ -167,6 +173,7 @@ public class DocumentChatController {
      * 本地文件路径对话（同步）
      * 请求体：{ filePath, message, model, chatId, useRag }
      */
+    @Operation(summary = "本地路径文件对话（同步）", description = "传入服务器本地文件路径，同步返回 AI 回答")
     @PostMapping("/chat/path")
     public ResponseEntity<String> documentChatByPath(@RequestBody PathChatRequest req) throws Exception {
         String filePath = req.getFilePath();
@@ -193,6 +200,7 @@ public class DocumentChatController {
     /**
      * 本地文件路径对话（SSE 流式）
      */
+    @Operation(summary = "本地路径文件对话（SSE 流式）")
     @PostMapping(value = "/stream/path", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter documentStreamByPath(@RequestBody PathChatRequest req) throws Exception {
         String filePath = req.getFilePath();
@@ -225,6 +233,7 @@ public class DocumentChatController {
      * 上传文件到服务器临时目录，返回文件绝对路径
      * MCP 工具（read_file 等）可直接使用该路径
      */
+    @Operation(summary = "上传临时文件", description = "上传文件到服务器临时目录，返回文件绝对路径（供 MCP 工具使用）")
     @PostMapping(value = "/upload/temp", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> uploadTemp(
             @RequestParam("file") MultipartFile file) throws IOException {

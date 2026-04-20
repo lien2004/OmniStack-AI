@@ -341,6 +341,14 @@ function Settings() {
 
   return (
     <div className="settings">
+      {/* 页面标题区 */}
+      <div className="g-page-header">
+        <div className="g-page-header-left">
+          <h1 className="g-page-title">模型管理</h1>
+          <p className="g-page-subtitle">管理 LLM 供应商配置与参数，支持多模型切换与性能对比</p>
+        </div>
+      </div>
+      <div style={{ padding: '24px 32px' }}>
       <Card>
         <Tabs activeKey={activeTab} onChange={setActiveTab}>
           <TabPane
@@ -676,6 +684,7 @@ function Settings() {
           </div>
         )}
       </Modal>
+      </div>
     </div>
   )
 }

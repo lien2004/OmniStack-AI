@@ -53,6 +53,7 @@
         <module>linglong-project</module>
         <module>linglong-infra</module>
         <module>linglong-gateway</module>
+        <module>lingnong-user</module>
     </modules>
 
     <dependencyManagement>

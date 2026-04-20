@@ -1,36 +1,60 @@
-import { Row, Col, Card, Button, Tag, Input, Tabs } from 'antd'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Button, Input, Tag, Tabs } from 'antd'
 import {
-  ThunderboltOutlined,
+  PlusOutlined,
   SearchOutlined,
-  StarOutlined,
-  MoreOutlined,
+  MessageOutlined,
   RobotOutlined,
   ApiOutlined,
-  MessageOutlined,
   DatabaseOutlined,
-  ArrowUpOutlined,
+  ThunderboltOutlined,
+  AppstoreOutlined,
+  ArrowRightOutlined,
 } from '@ant-design/icons'
 import './style.css'
 
-const quickStartItems = [
-  { title: 'AI 对话助手', desc: '快速开始智能对话', color: '#1677ff', icon: <MessageOutlined /> },
-  { title: '创建智能体', desc: '配置专属 AI Agent', color: '#52c41a', icon: <RobotOutlined /> },
+const featuredApps = [
+  {
+    id: 1,
+    title: 'AI 对话助手',
+    desc: '基于 GLM-4.6 + 向量缓存，智能问答让 AI 更懂你！',
+    icon: <MessageOutlined />,
+    iconBg: 'linear-gradient(135deg, #1677ff, #69b1ff)',
+    path: '/chat',
+    tags: ['GLM-4.6', 'RAG增强', '上下文记忆'],
+  },
+  {
+    id: 2,
+    title: 'RAG 知识问答',
+    desc: '向量检索增强生成，基于知识库精准回答专业问题。',
+    icon: <DatabaseOutlined />,
+    iconBg: 'linear-gradient(135deg, #52c41a, #95de64)',
+    path: '/knowledge',
+    tags: ['向量检索', 'PGVector', '文档解析'],
+  },
+  {
+    id: 3,
+    title: 'MCP Hub',
+    desc: 'Model Context Protocol 工具集成中心，扩展 AI 能力边界。',
+    icon: <ApiOutlined />,
+    iconBg: 'linear-gradient(135deg, #fa8c16, #ffd591)',
+    path: '/mcp',
+    tags: ['MCP协议', '工具调用', '能力扩展'],
+  },
 ]
 
-const resourceItems = [
-  { title: 'MCP 工具集', icon: <ApiOutlined />, color: '#faad14' },
-  { title: '知识库', icon: <DatabaseOutlined />, color: '#1677ff' },
+const categories = [
+  { key: 'all', label: '全部' },
+  { key: 'chat', label: 'AI 对话' },
+  { key: 'agent', label: '智能体' },
+  { key: 'rag', label: 'RAG 应用' },
+  { key: 'tool', label: 'MCP 工具' },
 ]
 
-const platformStats = [
-  { title: '活跃智能体', value: 12, icon: <RobotOutlined />, color: '#1677ff', trend: '+3' },
-  { title: 'API 调用次数', value: '1.2k', icon: <ApiOutlined />, color: '#52c41a', trend: '+12%' },
-  { title: 'MCP 工具集成', value: 45, icon: <ThunderboltOutlined />, color: '#faad14', trend: '+5' },
-  { title: '平均响应时间', value: '120ms', icon: <MessageOutlined />, color: '#722ed1', trend: '-8%' },
-]
-
-const appCategories = [
-  { key: 'all', label: '全部应用' },
+const leftCategories = [
+  { key: 'featured', label: '精选' },
+  { key: 'all', label: '全部' },
   { key: 'chat', label: 'AI 对话' },
   { key: 'agent', label: '智能体' },
   { key: 'rag', label: 'RAG 应用' },
@@ -38,143 +62,206 @@ const appCategories = [
 ]
 
 const appList = [
-  { id: 1, name: '灵龙对话助手', desc: '基于 GLM-4.6 + 向量缓存的智能对话', category: 'chat', icon: '🤖', color: '#1677ff' },
-  { id: 2, name: 'RAG 知识问答', desc: '向量检索增强生成，项目知识问答', category: 'rag', icon: '📚', color: '#52c41a' },
-  { id: 3, name: 'MCP Hub', desc: 'Model Context Protocol 工具集成中心', category: 'tool', icon: '⚡', color: '#faad14' },
-  { id: 4, name: 'DDDUP Agent', desc: '域驱动设计统一过程多智能体协作', category: 'agent', icon: '🌐', color: '#722ed1' },
+  {
+    id: 1,
+    name: '灵龙对话助手',
+    nameEn: 'LingLong Chat',
+    desc: '基于 GLM-4.6 + 向量缓存的智能对话，支持多轮问答与知识库检索。',
+    category: 'chat',
+    icon: <MessageOutlined />,
+    iconBg: '#1677ff1a',
+    iconColor: '#1677ff',
+    path: '/chat',
+  },
+  {
+    id: 2,
+    name: 'DDDUP Agent',
+    nameEn: 'Domain Driven Agent',
+    desc: '域驱动设计统一过程多智能体协作，全 AI 智能软件开发。',
+    category: 'agent',
+    icon: <RobotOutlined />,
+    iconBg: '#722ed11a',
+    iconColor: '#722ed1',
+    path: '/agents',
+  },
+  {
+    id: 3,
+    name: 'RAG 知识问答',
+    nameEn: 'RAG Knowledge QA',
+    desc: '向量检索增强生成，项目知识精准问答，支持多格式文档解析。',
+    category: 'rag',
+    icon: <DatabaseOutlined />,
+    iconBg: '#52c41a1a',
+    iconColor: '#52c41a',
+    path: '/knowledge',
+  },
+  {
+    id: 4,
+    name: 'MCP Hub',
+    nameEn: 'MCP Tool Center',
+    desc: 'Model Context Protocol 工具集成中心，扩展大模型能力边界。',
+    category: 'tool',
+    icon: <ThunderboltOutlined />,
+    iconBg: '#fa8c161a',
+    iconColor: '#fa8c16',
+    path: '/mcp',
+  },
+  {
+    id: 5,
+    name: '项目工作台',
+    nameEn: 'Project Workbench',
+    desc: '微服务项目版本管理与路由配置，一站式项目生命周期管理平台。',
+    category: 'agent',
+    icon: <AppstoreOutlined />,
+    iconBg: '#eb2f961a',
+    iconColor: '#eb2f96',
+    path: '/projects',
+  },
+  {
+    id: 6,
+    name: '模型管理中心',
+    nameEn: 'Model Management',
+    desc: '管理 LLM 供应商配置与参数，支持多模型切换与性能对比。',
+    category: 'tool',
+    icon: <ApiOutlined />,
+    iconBg: '#13c2c21a',
+    iconColor: '#13c2c2',
+    path: '/settings',
+  },
 ]
 
 function Dashboard() {
+  const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState('all')
+  const [activeCategory, setActiveCategory] = useState('featured')
+  const [searchVal, setSearchVal] = useState('')
+
+  const filteredApps = appList.filter((app) => {
+    const matchTab = activeTab === 'all' || app.category === activeTab
+    const matchCat =
+      activeCategory === 'featured' || activeCategory === 'all' || app.category === activeCategory
+    const matchSearch =
+      !searchVal ||
+      app.name.toLowerCase().includes(searchVal.toLowerCase()) ||
+      app.desc.toLowerCase().includes(searchVal.toLowerCase())
+    return matchTab && matchCat && matchSearch
+  })
+
   return (
     <div className="dashboard">
-      {/* 统计卡片区域 */}
-      <div className="stats-section">
-        <Row gutter={16}>
-          {platformStats.map((stat, i) => (
-            <Col span={6} key={i}>
-              <Card className="stat-card" bordered={false}>
-                <div className="stat-card-inner">
-                  <div className="stat-icon" style={{ color: stat.color, background: `${stat.color}15` }}>
-                    {stat.icon}
-                  </div>
-                  <div className="stat-info">
-                    <div className="stat-card-value">{stat.value}</div>
-                    <div className="stat-card-title">{stat.title}</div>
-                  </div>
-                  <div className="stat-trend" style={{ color: stat.trend.startsWith('-') ? '#52c41a' : '#1677ff' }}>
-                    <ArrowUpOutlined style={{ transform: stat.trend.startsWith('-') ? 'rotate(180deg)' : 'none' }} />
-                    {stat.trend}
-                  </div>
-                </div>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+      {/* 页面标题区 */}
+      <div className="page-header">
+        <div className="page-header-left">
+          <h1 className="page-title">应用广场</h1>
+          <p className="page-subtitle">探索、发现并集成最先进的 AI 应用与智能体</p>
+        </div>
+        <Button
+          type="primary"
+          size="large"
+          icon={<PlusOutlined />}
+          className="create-btn"
+          onClick={() => navigate('/agents')}
+        >
+          创建智能体
+        </Button>
       </div>
 
-      {/* Banner 区域 */}
-      <div className="banner-section">
-        <Row gutter={24}>
-          <Col span={16}>
-            <div className="banner-main">
-              <div className="banner-content">
-                <div className="banner-badge">灵龙AI智能平台 v2.0</div>
-                <h1 className="banner-title">灵龙AI智能平台</h1>
-                <p className="banner-subtitle">基于大模型 + 向量数据库 + MCP 工具链的一站式 AI 开发平台</p>
-                <div className="banner-tags">
-                  <Tag color="blue">GLM-4.6 大模型</Tag>
-                  <Tag color="cyan">RAG 向量检索</Tag>
-                  <Tag color="purple">MCP 工具集成</Tag>
-                  <Tag color="geekblue">DDDUP Agent</Tag>
-                </div>
-                <div className="banner-image">
-                  <div className="platform-preview">
-                    <div className="preview-code">
-                      <div className="code-line"><span className="code-comment">// 灵龙AI智能平台 - 山水相逢</span></div>
-                      <div className="code-line"><span className="code-keyword">import</span> <span className="code-variable">LingLongAI</span> <span className="code-keyword">from</span> <span className="code-string">'@linglong/core'</span></div>
-                      <div className="code-line"><span className="code-keyword">const</span> <span className="code-variable">ai</span> = <span className="code-keyword">new</span> <span className="code-function">LingLongAI</span>({`{`} model: <span className="code-string">'glm-4.6'</span> {`}`})</div>
-                      <div className="code-line"><span className="code-keyword">const</span> <span className="code-variable">answer</span> = <span className="code-keyword">await</span> <span className="code-variable">ai</span>.<span className="code-function">chat</span>(<span className="code-string">'你好，灵龙!'</span>)</div>
-                      <div className="code-line"><span className="code-comment">// 向量缓存命中，节省 Token</span></div>
-                      <div className="code-line"><span className="code-keyword">const</span> <span className="code-variable">cached</span> = <span className="code-keyword">await</span> <span className="code-variable">ai</span>.<span className="code-function">rag</span>(<span className="code-variable">answer</span>)</div>
+      {/* 精选应用卡片区 */}
+      <div className="featured-section">
+        <div className="featured-cards">
+          {featuredApps.map((app) => (
+            <div key={app.id} className="featured-card" onClick={() => navigate(app.path)}>
+              <div className="featured-card-body">
+                <div className="featured-card-left">
+                  <h3 className="featured-card-title">{app.title}</h3>
+                  <p className="featured-card-desc">{app.desc}</p>
+                  <div className="featured-card-footer">
+                    <Button
+                      type="primary"
+                      size="small"
+                      className="featured-card-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        navigate(app.path)
+                      }}
+                    >
+                      点击查看
+                    </Button>
+                    <div className="featured-card-tags">
+                      {app.tags.map((tag) => (
+                        <span key={tag} className="featured-tag">
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   </div>
+                </div>
+                <div className="featured-card-icon" style={{ background: app.iconBg }}>
+                  {app.icon}
                 </div>
               </div>
             </div>
-          </Col>
-          <Col span={8}>
-            <div className="banner-sidebar">
-              <Card className="quick-start-card" bordered={false}>
-                <div className="card-header">
-                  <h3>快速开始</h3>
-                </div>
-                <div className="quick-start-list">
-                  {quickStartItems.map((item, index) => (
-                    <div key={index} className="quick-start-item" style={{ borderLeftColor: item.color }}>
-                      <div className="quick-start-icon" style={{ color: item.color }}>{item.icon}</div>
-                      <div className="quick-start-info">
-                        <div className="quick-start-title">{item.title}</div>
-                        <div className="quick-start-desc">{item.desc}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-              <Row gutter={12} className="resource-row">
-                {resourceItems.map((item, index) => (
-                  <Col span={12} key={index}>
-                    <Card className="resource-card" bordered={false}>
-                      <div className="resource-icon" style={{ color: item.color }}>{item.icon}</div>
-                      <div className="resource-title">{item.title}</div>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </div>
-          </Col>
-        </Row>
+          ))}
+        </div>
       </div>
 
-      {/* 应用列表区域 */}
-      <div className="app-section">
-        <div className="section-header">
-          <Tabs items={appCategories} className="app-tabs" />
-          <div className="section-actions">
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="搜索应用"
-              className="search-input"
-            />
-            <Button type="link">更多</Button>
-          </div>
+      {/* 分类标签栏 */}
+      <div className="filter-bar">
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={categories.map((c) => ({ key: c.key, label: c.label }))}
+          className="filter-tabs"
+        />
+        <div className="filter-actions">
+          <Input
+            prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+            placeholder="请输入"
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+            className="filter-search"
+          />
         </div>
-        <Row gutter={[16, 16]} className="app-grid">
-          {appList.map((app) => (
-            <Col span={6} key={app.id}>
-              <Card className="app-card" bordered={false} hoverable>
-                <div className="app-card-header">
-                  <div className="app-icon" style={{ backgroundColor: `${app.color}15`, color: app.color }}>
-                    {app.icon}
-                  </div>
-                  <div className="app-actions">
-                    <Button type="text" size="small" icon={<StarOutlined />} />
-                    <Button type="text" size="small" icon={<MoreOutlined />} />
-                  </div>
-                </div>
-                <div className="app-info">
-                  <h4 className="app-name">{app.name}</h4>
-                  <p className="app-desc">{app.desc}</p>
-                </div>
-                <div className="app-meta">
-                  <Tag color={app.color === '#1677ff' ? 'blue' : app.color === '#52c41a' ? 'green' : app.color === '#faad14' ? 'gold' : 'purple'}>
-                    {appCategories.find(c => c.key === app.category)?.label}
-                  </Tag>
-                  <Button type="primary" size="small" style={{ background: app.color, borderColor: app.color }}>进入</Button>
-                </div>
-              </Card>
-            </Col>
+      </div>
+
+      {/* 内容区：左侧分类 + 右侧应用列表 */}
+      <div className="content-area">
+        {/* 左侧分类列表 */}
+        <div className="category-sidebar">
+          <div className="category-label">分类</div>
+          {leftCategories.map((cat) => (
+            <div
+              key={cat.key}
+              className={`category-item ${activeCategory === cat.key ? 'active' : ''}`}
+              onClick={() => setActiveCategory(cat.key)}
+            >
+              {cat.label}
+            </div>
           ))}
-        </Row>
+        </div>
+
+        {/* 右侧应用卡片网格 */}
+        <div className="app-grid">
+          {filteredApps.length === 0 ? (
+            <div className="empty-state">暂无匹配的应用</div>
+          ) : (
+            filteredApps.map((app) => (
+              <div key={app.id} className="app-card" onClick={() => navigate(app.path)}>
+                <div className="app-card-icon" style={{ background: app.iconBg, color: app.iconColor }}>
+                  {app.icon}
+                </div>
+                <div className="app-card-info">
+                  <div className="app-card-name">{app.name}</div>
+                  <div className="app-card-name-en">{app.nameEn}</div>
+                  <div className="app-card-desc">{app.desc}</div>
+                </div>
+                <div className="app-card-action">
+                  <ArrowRightOutlined className="app-card-arrow" />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   )

@@ -196,6 +196,7 @@ const ChatPage: React.FC = () => {
   const [uploadedFile, setUploadedFile]   = useState<File | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
   const [useRag, setUseRag]               = useState(false);
+  const [streamingMsgId, setStreamingMsgId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef   = useRef<HTMLInputElement>(null);
@@ -358,12 +359,14 @@ const ChatPage: React.FC = () => {
 
     const appendChunk = (chunk: string) => {
       accumulated += chunk;
+      setStreamingMsgId(assistantId);
       setMessages(prev => prev.map(m =>
         m.id === assistantId ? { ...m, content: accumulated, loading: false } : m
       ));
     };
 
     const onDone = () => {
+      setStreamingMsgId(null);
       setMessages(prev => prev.map(m =>
         m.id === assistantId ? { ...m, content: accumulated || m.content, loading: false } : m
       ));
@@ -372,6 +375,7 @@ const ChatPage: React.FC = () => {
     };
 
     const onError = (err: string) => {
+      setStreamingMsgId(null);
       setMessages(prev => prev.map(m =>
         m.id === assistantId
           ? { ...m, content: `⚠️ 请求失败：${err}`, loading: false }
@@ -580,11 +584,17 @@ const ChatPage: React.FC = () => {
         <div className="chat-messages">
           {messages.length === 0 ? (
             <div className="chat-welcome">
-              <div className="welcome-avatar"><RobotOutlined /></div>
+              <div className="welcome-bg-blob blob1" />
+              <div className="welcome-bg-blob blob2" />
+              <div className="welcome-avatar-ring">
+                <div className="welcome-avatar-inner">
+                  <RobotOutlined />
+                </div>
+              </div>
               <h2 className="welcome-title">你好，我是灵龙AI</h2>
               <p className="welcome-subtitle">
-                基于 <strong>{currentModel.label}</strong> 模型 ·{' '}
-                {useRag ? <span style={{ color: '#1677ff' }}>RAG 知识库增强已开启</span> : '向量语义缓存加速'}
+                基于 <strong>{currentModel.label}</strong> 模型·{' '}
+                {useRag ? <span className="rag-on-text">RAG 知识库增强已开启</span> : '向量语义缓存加速'}
               </p>
               <div className="quick-prompts">
                 {QUICK_PROMPTS.map((p, i) => (
@@ -619,7 +629,7 @@ const ChatPage: React.FC = () => {
                     <span className="msg-time">{new Date(msg.timestamp).toLocaleTimeString()}</span>
                   </div>
 
-                  <div className={`msg-bubble ${msg.role}`}>
+                  <div className={`msg-bubble ${msg.role}${streamingMsgId === msg.id ? ' is-streaming' : ''}`}>
                     {msg.role === 'user' && msg.fileAttachment && (
                       <div className="msg-file-badge">
                         <FileTextOutlined />
@@ -628,23 +638,30 @@ const ChatPage: React.FC = () => {
                     )}
                     {msg.loading ? (
                       <div className="msg-loading">
-                        <span className="typing-dot" /><span className="typing-dot" /><span className="typing-dot" />
-                        <span className="typing-text">思考中</span>
+                        <div className="wave-loading">
+                          {[0,1,2,3,4].map(i => (
+                            <span key={i} className="wave-bar" style={{ animationDelay: `${i * 0.1}s` }} />
+                          ))}
+                        </div>
+                        <span className="typing-text">思考中...</span>
                       </div>
                     ) : msg.role === 'assistant' ? (
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeRaw]}
-                        components={{
-                          code({ node, inline, className, children, ...props }: any) {
-                            return inline
-                              ? <code className="inline-code" {...props}>{children}</code>
-                              : <pre className="code-block"><code className={className} {...props}>{children}</code></pre>;
-                          },
-                        }}
-                      >
-                        {msg.content}
-                      </ReactMarkdown>
+                      <>
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeRaw]}
+                          components={{
+                            code({ node, inline, className, children, ...props }: any) {
+                              return inline
+                                ? <code className="inline-code" {...props}>{children}</code>
+                                : <pre className="code-block"><code className={className} {...props}>{children}</code></pre>;
+                            },
+                          }}
+                        >
+                          {msg.content}
+                        </ReactMarkdown>
+                        {streamingMsgId === msg.id && <span className="stream-cursor" />}
+                      </>
                     ) : (
                       <Text>{msg.content}</Text>
                     )}
@@ -722,7 +739,7 @@ const ChatPage: React.FC = () => {
               onKeyDown={handleKeyDown}
               placeholder={uploadedFile
                 ? `就「${uploadedFile.name}」提问或说明需求…`
-                : `向 ${currentModel.label} 发送消息...`}
+                : '输入您的问题或指令...'}
               autoSize={{ minRows: 1, maxRows: 6 }}
               disabled={loading}
               className="chat-textarea"

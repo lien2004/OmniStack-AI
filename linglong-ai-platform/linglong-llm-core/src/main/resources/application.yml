@@ -52,8 +52,8 @@ spring:
 chat:
   datasource:
     url: jdbc:mysql://localhost:3306/linglong_chat?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: 20041212
+    username: linglong
+    password: your-password
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 # ========== 当前使用：CodeFlow 灵龙AI ==========
@@ -86,10 +86,16 @@ zhipu:
   embedding:
     model: embedding-3  # 向量检索用模型，1024 维
 
+# RAG 配置
+rag:
+  retrieval:
+    top-k: 5  # 检索知识库条数，可根据需要调整（1-20）
+
 # 对话向量缓存配置
 conversation:
   cache:
-    similarity-threshold: 0.85
+    similarity-threshold: 0.65
+    candidate-size: 10  # 对话缓存候选检索数
   history:
     max-messages: 20  # 每次寻叶最多加载的历史消息条数
 
@@ -107,6 +113,14 @@ llm:
 mcp:
   server:
     url: http://localhost:8083
+
+# SpringDoc OpenAPI配置
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
 
 # 日志配置
 logging:

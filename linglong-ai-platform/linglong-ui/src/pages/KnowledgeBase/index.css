@@ -1,22 +1,18 @@
 .kb-page {
-  padding: 24px;
-  height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  overflow: auto;
   background: #f5f7fa;
 }
 
 /* Header */
 .kb-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px 24px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  padding: 28px 32px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #ffffff;
 }
 
 .kb-header-left {
@@ -26,33 +22,35 @@
 }
 
 .kb-header-icon {
-  font-size: 32px;
+  font-size: 26px;
   color: #1677ff;
-  background: #e6f4ff;
+  background: #eff6ff;
   padding: 10px;
   border-radius: 10px;
 }
 
 .kb-header-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1a2e;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
 }
 
 .kb-header-sub {
   font-size: 13px;
-  color: #8c8c8c;
-  margin-top: 2px;
+  color: #6b7280;
+  margin-top: 3px;
 }
 
 .kb-stats {
   display: flex;
   gap: 12px;
+  align-items: center;
 }
 
 .kb-stat-card {
   min-width: 140px;
-  border-radius: 8px;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
 }
 
 /* Body */
@@ -61,6 +59,7 @@
   gap: 20px;
   flex: 1;
   min-height: 0;
+  padding: 24px 32px;
 }
 
 /* Upload panel */

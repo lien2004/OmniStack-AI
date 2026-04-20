@@ -2,15 +2,18 @@ import React, { useState, useEffect } from 'react';
 import {
   Upload, Button, Table, Tag, Space, Popconfirm, Input,
   Select, message as antdMessage, Card, Statistic, Progress,
-  Tooltip, Badge, Modal,
+  Tooltip, Badge, Modal, Alert, Typography, Radio
 } from 'antd';
 import {
   DeleteOutlined, DatabaseOutlined,
   FileTextOutlined, ReloadOutlined, EyeOutlined, InboxOutlined,
+  QuestionCircleOutlined, MessageOutlined
 } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
 import axios from 'axios';
 import './index.css';
+
+const { Text} = Typography;
 
 const { Dragger } = Upload;
 const { Search } = Input;
@@ -55,6 +58,12 @@ const KnowledgeBasePage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'list' | 'search'>('list');
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [isBatchDeleting, setIsBatchDeleting] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<'all' | 'knowledge' | 'conversation'>('all');
+  const [uploadName, setUploadName] = useState('');
+  const [previewContent, setPreviewContent] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     loadList();
@@ -86,6 +95,24 @@ const KnowledgeBasePage: React.FC = () => {
     }
   };
 
+  const handleBatchDelete = async () => {
+    if (selectedRowKeys.length === 0) {
+      antdMessage.warning('请先选择要删除的文本块');
+      return;
+    }
+    setIsBatchDeleting(true);
+    try {
+      await axios.delete('/vector/docs', { data: selectedRowKeys });
+      antdMessage.success(`已删除 ${selectedRowKeys.length} 个文本块`);
+      setSelectedRowKeys([]);
+      loadList();
+    } catch {
+      antdMessage.error('批量删除失败');
+    } finally {
+      setIsBatchDeleting(false);
+    }
+  };
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     setSearchLoading(true);
@@ -102,9 +129,26 @@ const KnowledgeBasePage: React.FC = () => {
     }
   };
 
+  const handleOpenPreview = async (record: KbItem) => {
+    setPreviewItem(record);
+    setPreviewContent(null);
+    const meta = typeof record.metadata === 'string' ? JSON.parse(record.metadata) : record.metadata;
+    // 对话缓存类型不需要额外请求
+    if (meta?.type === 'conversation') return;
+    setPreviewLoading(true);
+    try {
+      const res = await axios.get(`/vector/doc/${record.id}`);
+      setPreviewContent(res.data?.content || record.contentPreview);
+    } catch {
+      setPreviewContent(record.contentPreview);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   const uploadProps: UploadProps = {
     name: 'file',
-    multiple: false,
+    multiple: true,
     accept: ACCEPT_FORMATS,
     showUploadList: false,
     customRequest: async ({ file, onSuccess, onError }: any) => {
@@ -113,6 +157,7 @@ const KnowledgeBasePage: React.FC = () => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('category', uploadCategory);
+      if (uploadName.trim()) formData.append('title', uploadName.trim());
       try {
         setUploadProgress(40);
         const res = await axios.post('/vector/upload', formData, {
@@ -123,7 +168,8 @@ const KnowledgeBasePage: React.FC = () => {
         });
         setUploadProgress(100);
         if (res.data.success) {
-          antdMessage.success(`「${res.data.filename}」已成功建索，共 ${res.data.chunks} 个文本块`);
+          antdMessage.success(`「${uploadName.trim() || res.data.filename}」已成功建索，共 ${res.data.chunks} 个文本块`);
+          setUploadName('');
           loadList();
           onSuccess(res.data);
         } else {
@@ -142,66 +188,121 @@ const KnowledgeBasePage: React.FC = () => {
 
   const columns = [
     {
-      title: '文件名',
-      key: 'filename',
+      title: '类型',
+      key: 'type',
+      width: 100,
       render: (_: any, record: KbItem) => {
         const meta = typeof record.metadata === 'string'
           ? JSON.parse(record.metadata) : record.metadata;
+        if (meta?.type === 'conversation') {
+          return (
+            <Tag color="green" icon={<MessageOutlined />}>
+              问答对
+            </Tag>
+          );
+        }
         return (
-          <Space>
-            <FileTextOutlined style={{ color: '#1677ff' }} />
-            <span style={{ fontWeight: 500 }}>{meta?.title || meta?.filename || '未命名'}</span>
-            {meta?.chunkIndex !== undefined && (
-              <Tag color="blue" style={{ fontSize: 11 }}>块 {meta.chunkIndex + 1}/{meta.totalChunks}</Tag>
-            )}
-          </Space>
+          <Tag color="blue" icon={<FileTextOutlined />}>
+            文档
+          </Tag>
         );
       },
     },
     {
-      title: '分类',
-      key: 'category',
-      width: 110,
+      title: '内容',
+      key: 'content',
       render: (_: any, record: KbItem) => {
         const meta = typeof record.metadata === 'string'
           ? JSON.parse(record.metadata) : record.metadata;
+        // 对话缓存类型，显示问题和答案
+        if (meta?.type === 'conversation') {
+          const question = meta?.question || '';
+          const answer = meta?.answer || '';
+          return (
+            <div style={{ fontSize: 13 }}>
+              <div style={{ 
+                color: '#1677ff', 
+                marginBottom: 6,
+                padding: '4px 8px',
+                background: '#f0f5ff',
+                borderRadius: 4,
+                borderLeft: '3px solid #1677ff'
+              }}>
+                <QuestionCircleOutlined style={{ marginRight: 4 }} />
+                <Text strong style={{ color: '#1677ff' }}>问题：</Text>
+                <Text style={{ color: '#1677ff' }}>
+                  {question.length > 50 ? question.slice(0, 50) + '...' : question}
+                </Text>
+              </div>
+              <div style={{ 
+                color: '#52c41a',
+                padding: '4px 8px',
+                background: '#f6ffed',
+                borderRadius: 4,
+                borderLeft: '3px solid #52c41a'
+              }}>
+                <MessageOutlined style={{ marginRight: 4 }} />
+                <Text strong style={{ color: '#52c41a' }}>答案：</Text>
+                <Text style={{ color: '#595959' }}>
+                  {answer.length > 60 ? answer.slice(0, 60) + '...' : answer}
+                </Text>
+              </div>
+            </div>
+          );
+        }
+        // 普通文档类型
         const cat = CATEGORY_OPTIONS.find(c => c.value === meta?.category);
-        return <Tag color="geekblue">{cat?.label || meta?.category || '通用文档'}</Tag>;
+        return (
+          <div style={{ fontSize: 13 }}>
+            <div style={{ marginBottom: 4 }}>
+              <Text strong style={{ color: '#262626' }}>
+                {meta?.title || meta?.filename || '未命名'}
+              </Text>
+              {meta?.chunkIndex !== undefined && (
+                <Tag color="blue" style={{ fontSize: 11, marginLeft: 8 }}>
+                  块 {meta.chunkIndex + 1}/{meta.totalChunks}
+                </Tag>
+              )}
+            </div>
+            <div style={{ color: '#8c8c8c', fontSize: 12 }}>
+              <Tag color="geekblue" style={{ fontSize: 11 }}>
+                {cat?.label || meta?.category || '通用文档'}
+              </Tag>
+              <span style={{ marginLeft: 8 }}>{record.contentLength.toLocaleString()} 字符</span>
+            </div>
+            <div style={{ color: '#595959', marginTop: 4 }}>
+              {record.contentPreview}
+            </div>
+          </div>
+        );
       },
-    },
-    {
-      title: '内容预览',
-      dataIndex: 'contentPreview',
-      key: 'contentPreview',
-      render: (v: string) => (
-        <span style={{ color: '#595959', fontSize: 13 }}>{v}</span>
-      ),
-    },
-    {
-      title: '字符数',
-      dataIndex: 'contentLength',
-      key: 'contentLength',
-      width: 90,
-      render: (v: number) => <span style={{ color: '#8c8c8c' }}>{v.toLocaleString()}</span>,
     },
     {
       title: '操作',
       key: 'action',
-      width: 120,
+      width: 100,
       render: (_: any, record: KbItem) => (
-        <Space>
-          <Tooltip title="查看内容">
+        <Space direction="vertical" size="small">
+          <Tooltip title="查看详情">
             <Button
-              type="text" size="small" icon={<EyeOutlined />}
-              onClick={() => setPreviewItem(record)}
-            />
+              type="primary" 
+              size="small" 
+              icon={<EyeOutlined />}
+              onClick={() => handleOpenPreview(record)}
+            >
+              查看
+            </Button>
           </Tooltip>
           <Popconfirm
-            title="确认删除该文本块？"
+            title="确认删除？"
+            description="删除后不可恢复"
             onConfirm={() => handleDelete(record.id)}
-            okText="删除" cancelText="取消"
+            okText="删除" 
+            cancelText="取消"
           >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+            <Button type="default" size="small" danger icon={<DeleteOutlined />}>
+              删除
+            </Button>
           </Popconfirm>
         </Space>
       ),
@@ -256,13 +357,32 @@ const KnowledgeBasePage: React.FC = () => {
           <div className="kb-panel-title">上传到知识库</div>
 
           <div className="kb-category-row">
-            <span className="kb-label">文档分类</span>
-            <Select
-              value={uploadCategory}
-              onChange={setUploadCategory}
-              options={CATEGORY_OPTIONS}
+            <span className="kb-label">文档命名</span>
+            <Input
+              placeholder="自定义文档名（选填，默认使用文件名）"
+              value={uploadName}
+              onChange={e => setUploadName(e.target.value)}
+              allowClear
+              size="small"
               style={{ width: '100%' }}
             />
+          </div>
+
+          <div className="kb-category-row">
+            <span className="kb-label">文档分类</span>
+            <Radio.Group 
+              value={uploadCategory}
+              onChange={(e) => setUploadCategory(e.target.value)}
+              style={{ width: '100%' }}
+              optionType="button"
+              buttonStyle="solid"
+            >
+              {CATEGORY_OPTIONS.map(opt => (
+                <Radio.Button key={opt.value} value={opt.value}>
+                  {opt.label}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
           </div>
 
           <Dragger {...uploadProps} disabled={uploading} className="kb-dragger">
@@ -313,17 +433,29 @@ const KnowledgeBasePage: React.FC = () => {
             </div>
             <div className="kb-toolbar-right">
               {activeTab === 'list' ? (
-                <>
+                <Space>
+                  <Radio.Group 
+                    value={typeFilter}
+                    onChange={(e) => { setTypeFilter(e.target.value); setPage(0); }}
+                    optionType="button"
+                    buttonStyle="solid"
+                    size="small"
+                  >
+                    <Radio.Button value="all">全部</Radio.Button>
+                    <Radio.Button value="knowledge">文档</Radio.Button>
+                    <Radio.Button value="conversation">问答对</Radio.Button>
+                  </Radio.Group>
                   <Select
                     placeholder="筛选分类"
                     allowClear
                     options={CATEGORY_OPTIONS}
                     value={filterCategory || undefined}
                     onChange={(v) => { setFilterCategory(v ?? ''); setPage(0); }}
-                    style={{ width: 140 }}
+                    style={{ width: 120 }}
+                    size="small"
                   />
-                  <Button icon={<ReloadOutlined />} onClick={loadList} />
-                </>
+                  <Button icon={<ReloadOutlined />} onClick={loadList} size="small" />
+                </Space>
               ) : (
                 <Search
                   placeholder="输入关键词语义搜索知识库..."
@@ -339,22 +471,61 @@ const KnowledgeBasePage: React.FC = () => {
           </div>
 
           {activeTab === 'list' ? (
-            <Table
-              columns={columns}
-              dataSource={items}
-              rowKey="id"
-              loading={loading}
-              pagination={{
-                current: page + 1,
-                pageSize,
-                total,
-                onChange: (p) => setPage(p - 1),
-                showTotal: (t) => `共 ${t} 条`,
-                showSizeChanger: false,
-              }}
-              size="small"
-              className="kb-table"
-            />
+            <>
+              {selectedRowKeys.length > 0 && (
+                <Alert
+                  message={`已选择 ${selectedRowKeys.length} 个文本块`}
+                  type="info"
+                  showIcon
+                  action={
+                    <Popconfirm
+                      title={`确认删除选中的 ${selectedRowKeys.length} 个文本块？`}
+                      description="此操作不可恢复"
+                      onConfirm={handleBatchDelete}
+                      okText="确认删除"
+                      cancelText="取消"
+                      okButtonProps={{ danger: true, loading: isBatchDeleting }}
+                    >
+                      <Button
+                        type="primary"
+                        danger
+                        icon={<DeleteOutlined />}
+                        loading={isBatchDeleting}
+                      >
+                        一键删除
+                      </Button>
+                    </Popconfirm>
+                  }
+                  style={{ marginBottom: 16 }}
+                />
+              )}
+              <Table
+                columns={columns}
+                dataSource={items.filter(item => {
+                  if (typeFilter === 'all') return true;
+                  const meta = typeof item.metadata === 'string' 
+                    ? JSON.parse(item.metadata) : item.metadata;
+                  if (typeFilter === 'conversation') return meta?.type === 'conversation';
+                  return meta?.type !== 'conversation';
+                })}
+                rowKey="id"
+                loading={loading}
+                pagination={{
+                  current: page + 1,
+                  pageSize,
+                  total,
+                  onChange: (p) => setPage(p - 1),
+                  showTotal: (t) => `共 ${t} 条`,
+                  showSizeChanger: false,
+                }}
+                size="small"
+                className="kb-table"
+                rowSelection={{
+                  selectedRowKeys,
+                  onChange: (newSelectedRowKeys) => setSelectedRowKeys(newSelectedRowKeys),
+                }}
+              />
+            </>
           ) : (
             <Table
               columns={searchColumns}
@@ -372,9 +543,13 @@ const KnowledgeBasePage: React.FC = () => {
 
       {/* 内容预览弹窗 */}
       <Modal
-        title="文本块内容"
+        title={previewItem ? (() => {
+          const meta = typeof previewItem.metadata === 'string'
+            ? JSON.parse(previewItem.metadata) : previewItem.metadata;
+          return meta?.type === 'conversation' ? '问答详情' : '文本块内容';
+        })() : ''}
         open={!!previewItem}
-        onCancel={() => setPreviewItem(null)}
+        onCancel={() => { setPreviewItem(null); setPreviewContent(null); }}
         footer={null}
         width={700}
       >
@@ -384,6 +559,17 @@ const KnowledgeBasePage: React.FC = () => {
               {(() => {
                 const meta = typeof previewItem.metadata === 'string'
                   ? JSON.parse(previewItem.metadata) : previewItem.metadata;
+                // 对话缓存类型
+                if (meta?.type === 'conversation') {
+                  return (
+                    <Space wrap>
+                      <Tag color="green">对话缓存</Tag>
+                      <Tag color="blue">{meta?.model || '未知模型'}</Tag>
+                      <Tag>{previewItem.contentLength} 字符</Tag>
+                    </Space>
+                  );
+                }
+                // 普通文档类型
                 return (
                   <Space wrap>
                     <Tag color="blue">{meta?.filename}</Tag>
@@ -396,13 +582,38 @@ const KnowledgeBasePage: React.FC = () => {
                 );
               })()}
             </div>
-            <pre style={{
-              background: '#f6f8fa', padding: 16, borderRadius: 6,
-              fontSize: 13, lineHeight: 1.6, maxHeight: 500, overflow: 'auto',
-              whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-            }}>
-              {previewItem.contentPreview.replace('...', '')}
-            </pre>
+            {(() => {
+              const meta = typeof previewItem.metadata === 'string'
+                ? JSON.parse(previewItem.metadata) : previewItem.metadata;
+              // 对话缓存类型，显示问题和答案
+              if (meta?.type === 'conversation') {
+                return (
+                  <div style={{
+                    background: '#f6f8fa', padding: 16, borderRadius: 6,
+                    fontSize: 13, lineHeight: 1.6, maxHeight: 500, overflow: 'auto',
+                  }}>
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ color: '#1677ff', fontWeight: 'bold', marginBottom: 8 }}>问题：</div>
+                      <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{meta?.question}</div>
+                    </div>
+                    <div style={{ borderTop: '1px solid #e8e8e8', paddingTop: 16 }}>
+                      <div style={{ color: '#52c41a', fontWeight: 'bold', marginBottom: 8 }}>答案：</div>
+                      <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{meta?.answer}</div>
+                    </div>
+                  </div>
+                );
+              }
+              // 普通文档类型
+              return (
+                <pre style={{
+                  background: '#f6f8fa', padding: 16, borderRadius: 6,
+                  fontSize: 13, lineHeight: 1.6, maxHeight: 500, overflow: 'auto',
+                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                }}>
+                  {previewLoading ? '加载中...' : (previewContent ?? previewItem.contentPreview)}
+                </pre>
+              );
+            })()}
           </div>
         )}
       </Modal>

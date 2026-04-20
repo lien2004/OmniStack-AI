@@ -47,22 +47,74 @@ api.interceptors.response.use(
   }
 )
 
-// 登录接口
-export const login = async (username: string, password: string): Promise<ApiResponse> => {
-  const response = await api.post('/auth/login', { username, password })
+// 注册接口
+export const register = async (data: {
+  username: string
+  password: string
+  mobile: string
+  verifyCode: string
+  role?: number
+}): Promise<ApiResponse> => {
+  const response = await api.post('/user/register', data)
   return response.data as ApiResponse
 }
 
-// 获取当前用户信息
-export const getCurrentUser = async () => {
-  const response = await api.get('/auth/me')
-  return response
+// 发送短信验证码
+export const sendSmsCode = async (data: { mobile: string }): Promise<ApiResponse> => {
+  const response = await api.post('/user/send-code', data)
+  return response.data as ApiResponse
+}
+
+// 登录接口
+export const login = async (data: { username: string; password: string }): Promise<ApiResponse> => {
+  const response = await api.post('/user/login', data)
+  return response.data as ApiResponse
+}
+
+// 获取个人信息
+export const getUserProfile = async (): Promise<ApiResponse> => {
+  const response = await api.get('/user/profile')
+  return response.data as ApiResponse
+}
+
+// 更新个人信息
+export const updateUserProfile = async (data: {
+  mobile?: string
+  oldPassword?: string
+  newPassword?: string
+}): Promise<ApiResponse> => {
+  const response = await api.put('/user/profile', data)
+  return response.data as ApiResponse
+}
+
+// 管理员：获取所有用户
+export const adminGetUsers = async (): Promise<ApiResponse> => {
+  const response = await api.get('/user/admin/users')
+  return response.data as ApiResponse
+}
+
+// 管理员：更新用户
+export const adminUpdateUser = async (
+  id: number,
+  data: { username?: string; mobile?: string; role?: number; password?: string }
+): Promise<ApiResponse> => {
+  const response = await api.put(`/user/admin/users/${id}`, data)
+  return response.data as ApiResponse
+}
+
+// 管理员：删除用户
+export const adminDeleteUser = async (id: number): Promise<ApiResponse> => {
+  const response = await api.delete(`/user/admin/users/${id}`)
+  return response.data as ApiResponse
 }
 
 // 退出登录
-export const logout = async () => {
-  const response = await api.post('/auth/logout')
-  return response
+export const logoutApi = async (): Promise<void> => {
+  try {
+    await api.post('/user/logout')
+  } catch (_) {
+    // ignore errors
+  }
 }
 
 // 获取项目列表
