@@ -9,7 +9,7 @@
         <artifactId>linglong-ai-platform</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <!-- 建议保留相对路径，或者设为空以从仓库查找 -->
-        <relativePath/>
+
     </parent>
 
     <artifactId>lingnong-user</artifactId>
