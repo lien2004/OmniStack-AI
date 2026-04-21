@@ -45,14 +45,14 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- 3. 🔴 核心修复：显式指定兼容 Spring Boot 3.2 的 MyBatis Plus 版本 -->
+        <!-- 3.  核心修复：显式指定兼容 Spring Boot 3.2 的 MyBatis Plus 版本 -->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>
             <version>3.5.6</version>
         </dependency>
 
-        <!-- 4. 🔴 核心修复：显式指定兼容 Spring 6 的 mybatis-spring 版本 -->
+        <!-- 4. 核心修复：显式指定兼容 Spring 6 的 mybatis-spring 版本 -->
         <!-- 这一步是为了解决 Invalid value type for attribute 'factoryBeanObjectType' 错误 -->
         <dependency>
             <groupId>org.mybatis</groupId>
@@ -99,6 +99,13 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <!-- 如果需要，可以在这里配置 main-class -->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

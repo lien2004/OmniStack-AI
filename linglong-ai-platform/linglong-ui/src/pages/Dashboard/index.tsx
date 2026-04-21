@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Input, Tag, Tabs } from 'antd'
+import { Button, Input, Tabs } from 'antd'
 import {
   PlusOutlined,
   SearchOutlined,

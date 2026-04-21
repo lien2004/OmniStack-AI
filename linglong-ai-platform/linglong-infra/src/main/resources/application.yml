@@ -19,8 +19,8 @@ spring:
 
   # 数据库配置
   datasource:
-    url: jdbc:postgresql://localhost:5432/linglong
-    username: postgres
+    url: jdbc:postgresql://localhost:5432/linglongpg
+    username: linglongpg
     password: your-password
     driver-class-name: org.postgresql.Driver
   

@@ -19,9 +19,9 @@ spring:
   
   # PostgreSQL数据库配置 - 用于向量存储
   datasource:
-    url: jdbc:postgresql://localhost:5432/linglong
-    username: postgres
-    password: 20041212
+    url: jdbc:postgresql://localhost:5432/linglongfpg
+    username: linglong
+    password: your-password
     driver-class-name: org.postgresql.Driver
   
   # Redis配置 - 用于缓存对话历史、Token使用量等
@@ -51,8 +51,8 @@ spring:
 # ========== MySQL配置 - 对话历史持久化 ==========
 chat:
   datasource:
-    url: jdbc:mysql://localhost:3306/linglong_chat?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-    username: linglong
+    url: jdbc:mysql://localhost:3306/linglong?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
     password: your-password
     driver-class-name: com.mysql.cj.jdbc.Driver
 

@@ -1,5 +1,7 @@
 package com.linglong.llm.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.embedding.EmbeddingClient;
 import org.springframework.ai.vectorstore.PgVectorStore;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -7,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
@@ -17,6 +20,8 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
  */
 @Configuration
 public class VectorStoreConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(VectorStoreConfig.class);
 
     @Value("${vector.store.dimensions:1024}")
     private int dimensions;
@@ -63,16 +68,58 @@ public class VectorStoreConfig {
     }
 
     /**
+     * 安全 JdbcTemplate：拦截 CREATE EXTENSION 语句，
+     * 若扩展在系统中不可用（如 uuid-ossp），静默跳过而非抛出异常。
+     * 我们的表使用 gen_random_uuid()（PG内置），无需 uuid-ossp。
+     */
+    /**
+     * 安全 JdbcTemplate：
+     * 1. 跳过系统未安装的 uuid-ossp 扩展创建
+     * 2. 将所有 SQL 中的 uuid_generate_v4() 替换为 gen_random_uuid()（PG内置，无需扩展）
+     */
+    private JdbcTemplate safeJdbcTemplate() {
+        DriverManagerDataSource pgDataSource = new DriverManagerDataSource();
+        pgDataSource.setDriverClassName("org.postgresql.Driver");
+        pgDataSource.setUrl(pgUrl);
+        pgDataSource.setUsername(pgUsername);
+        pgDataSource.setPassword(pgPassword);
+        return new JdbcTemplate(pgDataSource) {
+            @Override
+            public void execute(String sql) throws DataAccessException {
+                if (sql == null) {
+                    super.execute((String) null);
+                    return;
+                }
+                // 1. 替换 uuid_generate_v4() 为 PG 内置函数，避免依赖 uuid-ossp
+                String fixedSql = sql
+                        .replace("uuid_generate_v4 ()", "gen_random_uuid()")
+                        .replace("uuid_generate_v4()", "gen_random_uuid()");
+                if (!fixedSql.equals(sql)) {
+                    log.info("[VectorStore] uuid_generate_v4() 已替换为 gen_random_uuid()");
+                }
+                // 2. 如果是 CREATE EXTENSION 语句，失败时静默跳过
+                if (fixedSql.toUpperCase().contains("CREATE EXTENSION")) {
+                    try {
+                        super.execute(fixedSql);
+                    } catch (DataAccessException e) {
+                        log.warn("[VectorStore] 扩展创建跳过（系统未安装）: {} | 原因: {}", fixedSql.trim(), e.getMessage());
+                    }
+                } else {
+                    super.execute(fixedSql);
+                }
+            }
+        };
+    }
+
+    /**
      * 创建 PgVectorStore Bean
-     * 显式使用 PostgreSQL 数据源，避免多数据源环境下注入错误
+     * 使用 safeJdbcTemplate 屏蔽 Spring AI 硬编码的 uuid-ossp 扩展创建失败
+     * 我们的 vector_store 表用 gen_random_uuid()，不依赖 uuid-ossp
      */
     @Bean
     public VectorStore vectorStore(EmbeddingClient embeddingClient) {
-        // 注意：vector_store 是视图，指向 linglong 物理表
-        // 索引已在 linglong 表上创建（见 init-pgvector.sql）
-        // 因此 initializeSchema=false 且 indexType=NONE，避免在视图上创建索引
         return new PgVectorStore(
-                pgJdbcTemplate(),
+                safeJdbcTemplate(),
                 embeddingClient,
                 dimensions,
                 PgVectorStore.PgDistanceType.COSINE_DISTANCE,

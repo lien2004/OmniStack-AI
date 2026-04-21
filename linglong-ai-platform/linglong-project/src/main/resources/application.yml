@@ -22,9 +22,9 @@ spring:
 
   # PostgreSQL数据库配置
   datasource:
-    url: jdbc:postgresql://localhost:5432/linglong
-    username: postgres
-    password: 20041212
+    url: jdbc:postgresql://localhost:5432/linglongpg
+    username: linglongpg
+    password: your-password
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10

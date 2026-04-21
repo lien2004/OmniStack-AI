@@ -22,3 +22,7 @@
 [3496] 20 Apr 17:02:11.178 # Server initialized
 [3496] 20 Apr 17:02:11.178 * Ready to accept connections
 [3496] 20 Apr 17:03:50.502 # CONFIG REWRITE executed with success.
+[3496] 20 Apr 17:17:12.018 * 1 changes in 900 seconds. Saving...
+[3496] 20 Apr 17:17:12.060 * Background saving started by pid 15876
+[3496] 20 Apr 17:17:12.163 # fork operation complete
+[3496] 20 Apr 17:17:12.177 * Background saving terminated with success

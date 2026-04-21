@@ -7,8 +7,8 @@ spring:
   
   # MySQL数据库配置
   datasource:
-    url: jdbc:mysql://localhost:3306/linglong_mcp?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
-    username: linglong
+    url: jdbc:mysql://localhost:3306/linglong?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
     password: your-password
     driver-class-name: com.mysql.cj.jdbc.Driver
   

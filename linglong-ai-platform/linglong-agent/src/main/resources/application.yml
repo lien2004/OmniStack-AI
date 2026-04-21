@@ -7,9 +7,9 @@ spring:
   
   # PostgreSQL数据库配置
   datasource:
-    url: jdbc:postgresql://localhost:5432/linglong
-    username: postgres
-    password: 20041212
+    url: jdbc:postgresql://localhost:5432/linglongpg
+    username: linglong
+    password: your-password
     driver-class-name: org.postgresql.Driver
   
   # Redis配置 - 用于Agent上下文共享
@@ -17,7 +17,7 @@ spring:
     redis:
       host: localhost
       port: 6379
-      # password: your-password  # 如果Redis没有设置密码，请注释掉此行
+      password: your-password  # Redis密码
       database: 2
       timeout: 60000ms
       lettuce:
