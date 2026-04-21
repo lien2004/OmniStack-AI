@@ -85,7 +85,14 @@
             <artifactId>hutool-all</artifactId>
         </dependency>
 
-        <!-- 9. 测试依赖 -->
+        <!-- 9. Spring Boot 配置处理器（消除 IDEA 自定义属性警告） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 10. 测试依赖 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

@@ -19,7 +19,7 @@ spring:
   
   # PostgreSQL数据库配置 - 用于向量存储
   datasource:
-    url: jdbc:postgresql://localhost:5432/linglongfpg
+    url: jdbc:postgresql://localhost:5432/linglongpg
     username: linglong
     password: your-password
     driver-class-name: org.postgresql.Driver

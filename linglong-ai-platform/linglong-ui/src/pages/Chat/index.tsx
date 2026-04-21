@@ -83,7 +83,11 @@ const genChatId = (): string => {
 // ── 相对时间格式化 ────────────────────────────────────────────────────────
 const formatRelativeTime = (isoOrDatetime: string): string => {
   try {
-    const diff = Date.now() - new Date(isoOrDatetime).getTime();
+    // MySQL DATETIME 字段无时区信息，服务器存的是 UTC，需加 'Z' 标记让 JS 正确解析为 UTC
+    const normalized = isoOrDatetime.includes('T') || isoOrDatetime.endsWith('Z')
+      ? isoOrDatetime
+      : isoOrDatetime.replace(' ', 'T') + 'Z';
+    const diff = Date.now() - new Date(normalized).getTime();
     if (diff < 60_000)     return '刚刚';
     if (diff < 3_600_000)  return `${Math.floor(diff / 60_000)} 分钟前`;
     if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} 小时前`;

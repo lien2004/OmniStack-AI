@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -35,9 +37,11 @@ public class ChatHistoryService {
     public void saveMessage(String chatId, String role, String content,
                             String model, String fileAttachment) {
         try {
+            // 显式写入北京时间（Asia/Shanghai），不依赖 MySQL 服务器默认时区
+            LocalDateTime nowCst = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
             chatJdbcTemplate.update(
-                    "INSERT INTO chat_message (chat_id, role, content, model, file_attachment) VALUES (?, ?, ?, ?, ?)",
-                    chatId, role, content, model, fileAttachment
+                    "INSERT INTO chat_message (chat_id, role, content, model, file_attachment, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    chatId, role, content, model, fileAttachment, nowCst
             );
         } catch (Exception e) {
             log.error("保存消息失败 chatId={}: {}", chatId, e.getMessage(), e);
