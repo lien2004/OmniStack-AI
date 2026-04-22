@@ -12,7 +12,7 @@
 
     </parent>
 
-    <artifactId>lingnong-user</artifactId>
+    <artifactId>linglong-user</artifactId>
     <name>LingLong User</name>
     <description>User Management Module</description>
 
