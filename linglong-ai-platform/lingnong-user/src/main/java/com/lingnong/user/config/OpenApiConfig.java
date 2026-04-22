@@ -20,11 +20,11 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("玲珑AI平台 - 用户模块 API")
+                        .title("linglongAI平台 - 用户模块 API")
                         .description("用户管理模块 - 提供用户注册、登录、信息管理等功能")
                         .version("1.0.0")
                         .contact(new Contact()
-                                .name("玲珑AI团队")
+                                .name("linglongAI团队")
                                 .email("support@linglong.ai"))
                         .license(new License()
                                 .name("Apache 2.0")
