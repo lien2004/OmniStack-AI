@@ -30,8 +30,8 @@ public class OpenApiConfig {
                                 .name("Apache 2.0")
                                 .url("https://www.apache.org/licenses/LICENSE-2.0")))
                 .servers(List.of(
-                        new Server().url("http://localhost:8080").description("本地开发环境"),
-                        new Server().url("http://localhost:8088").description("网关服务")
+                        new Server().url("http://8.137.117.129:8080").description("项目服务"),
+                        new Server().url("http://8.137.117.129:8088").description("网关服务")
                 ));
     }
 }

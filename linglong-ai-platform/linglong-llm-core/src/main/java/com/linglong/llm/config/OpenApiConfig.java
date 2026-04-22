@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * LLM Core 模块 OpenAPI/Swagger 配置
- * 访问地址：http://localhost:8084/swagger-ui.html
+ * 访问地址：http://8.137.117.129:8084/swagger-ui.html
  */
 @Configuration("llmCoreOpenApiConfig")
 public class OpenApiConfig {
@@ -33,7 +33,7 @@ public class OpenApiConfig {
                                 .name("Apache 2.0")
                                 .url("https://www.apache.org/licenses/LICENSE-2.0")))
                 .servers(List.of(
-                        new Server().url("http://localhost:8084").description("LLM Core 服务（本地）")
+                        new Server().url("http://8.137.117.129:8084").description("LLM Core 服务")
                 ));
     }
 }
