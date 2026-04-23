@@ -16,12 +16,6 @@
     <description>Spring AI配置、LLM调用封装</description>
 
     <dependencies>
-        <!-- Common Module -->
-        <dependency>
-            <groupId>com.linglong</groupId>
-            <artifactId>linglong-common</artifactId>
-        </dependency>
-        
         <!-- Spring Boot Starter WebFlux -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

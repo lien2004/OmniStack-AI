@@ -6,7 +6,7 @@ import com.linglong.agent.service.AgentConfigService;
 import com.linglong.agent.service.AgentService;
 import com.linglong.agent.service.AgentStatsService;
 import com.linglong.agent.service.FileStorageService;
-import com.linglong.common.result.Result;
+import com.linglong.agent.common.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;

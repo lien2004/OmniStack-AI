@@ -1,7 +1,7 @@
 package com.lingnong.user.exception;
 
-import com.linglong.common.exception.BusinessException;
-import com.linglong.common.result.Result;
+import com.lingnong.user.common.BusinessException;
+import com.lingnong.user.common.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

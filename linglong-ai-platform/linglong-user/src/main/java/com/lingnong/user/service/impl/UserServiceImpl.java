@@ -2,8 +2,8 @@ package com.lingnong.user.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.linglong.common.exception.BusinessException;
-import com.linglong.common.result.ResultCode;
+import com.lingnong.user.common.BusinessException;
+import com.lingnong.user.common.ResultCode;
 import com.lingnong.user.dto.AdminUpdateUserRequest;
 import com.lingnong.user.dto.ForgotPasswordRequest;
 import com.lingnong.user.dto.LoginRequest;

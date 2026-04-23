@@ -22,7 +22,7 @@ public class DatabaseTool {
     private static final Logger log = LoggerFactory.getLogger(DatabaseTool.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Value("${db.default.url:jdbc:postgresql://localhost:5432/linglong}")
+    @Value("${db.default.url:jdbc:postgresql://8.137.117.129:5432/linglong}")
     private String defaultJdbcUrl;
 
     @Value("${db.default.username:postgres}")

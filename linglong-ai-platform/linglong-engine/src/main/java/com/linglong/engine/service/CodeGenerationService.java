@@ -1,8 +1,8 @@
 package com.linglong.engine.service;
 
-import com.linglong.agent.model.AgentContext;
-import com.linglong.agent.model.AgentResult;
-import com.linglong.llm.service.LLMService;
+import com.linglong.engine.agent.AgentContext;
+import com.linglong.engine.agent.AgentResult;
+import com.linglong.engine.llm.LLMService;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;

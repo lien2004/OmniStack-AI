@@ -1,8 +1,8 @@
 package com.linglong.engine.core;
 
-import com.linglong.agent.core.Agent;
-import com.linglong.agent.model.AgentContext;
-import com.linglong.agent.model.AgentResult;
+import com.linglong.engine.agent.Agent;
+import com.linglong.engine.agent.AgentContext;
+import com.linglong.engine.agent.AgentResult;
 import com.linglong.engine.model.WorkflowDefinition;
 import com.linglong.engine.model.WorkflowInstance;
 import reactor.core.publisher.Flux;

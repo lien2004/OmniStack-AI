@@ -1,6 +1,6 @@
 package com.linglong.mcp.controller;
 
-import com.linglong.common.result.Result;
+import com.linglong.mcp.common.Result;
 import com.linglong.mcp.model.ToolDefinition;
 import com.linglong.mcp.model.ToolExecutionRequest;
 import com.linglong.mcp.model.ToolExecutionResult;

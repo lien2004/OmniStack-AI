@@ -5,7 +5,7 @@ spring:
   application:
     name: linglong-gateway
   
-  # Redis配置 - 用于网关限流、Token黑名单等
+  # Redis配置
   data:
     redis:
       host: localhost
@@ -19,42 +19,59 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
-  
+
   cloud:
     gateway:
       routes:
-        # 认证服务路由
-        - id: linglong-auth
+        # ==========================================
+        # 1. 用户与认证服务 (User & Auth)
+        # 端口: 8082
+        # 匹配: /api/user/** 和 /api/auth/**
+        # ==========================================
+        - id: linglong-user
           uri: http://localhost:8081
           predicates:
-            - Path=/api/auth/**
+            - Path=/api/user/**, /api/auth/**
           filters:
-            - StripPrefix=0
-        
-        # 项目管理服务路由
-        - id: linglong-project
-          uri: http://localhost:8081
+            - StripPrefix=1
+
+        # ==========================================
+        # 2. Agent 服务
+        # 端口: 8085
+        # 匹配: /api/agent/** 和 /api/v1/agents/**
+        # ==========================================
+        - id: linglong-agent
+          uri: http://localhost:8085
           predicates:
-            - Path=/api/v1/projects/**, /api/v1/agents/**, /api/v1/generate/**
+            - Path=/api/agent/**, /api/v1/agents/**
           filters:
-            - StripPrefix=0
-        
-        # LLM Core服务路由
+            - StripPrefix=1
+
+        # ==========================================
+        # 3. LLM Core 服务
+        # 端口: 8084
+        # 匹配: /ai/**
+        # ==========================================
         - id: linglong-llm-core
           uri: http://localhost:8084
           predicates:
             - Path=/ai/**
           filters:
-            - StripPrefix=0
-        
-        # MCP服务路由
+            - StripPrefix=1
+
+        # ==========================================
+        # 4. MCP 服务
+        # 端口: 8083
+        # 匹配: /api/v1/mcp/**
+        # ==========================================
         - id: linglong-mcp
           uri: http://localhost:8083
           predicates:
             - Path=/api/v1/mcp/**
           filters:
-            - StripPrefix=0
-      
+            - StripPrefix=1
+
+      # 跨域配置
       globalcors:
         cors-configurations:
           '[/**]':
@@ -62,24 +79,23 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: false
-      
+
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 
-# JWT配置
+# JWT配置 - 生产环境请务必修改 secret
 jwt:
-  secret: your-secret-key-here
+  secret: your-secret-key-here-change-this
   expiration: 86400000
+  tokenHeader: Authorization
 
-# 网关限流配置
+# 限流配置
 rate-limiter:
   enabled: true
-  default-rate: 100  # 每秒请求数
-  default-burst: 200  # 突发流量
+  default-rate: 100
+  default-burst: 200
 
-# 日志配置
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
-    org.springframework.data.redis: DEBUG
     reactor.netty: INFO

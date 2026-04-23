@@ -16,12 +16,6 @@
     <description>MCP协议实现、工具注册中心</description>
 
     <dependencies>
-        <!-- Common Module -->
-        <dependency>
-            <groupId>com.linglong</groupId>
-            <artifactId>linglong-common</artifactId>
-        </dependency>
-        
         <!-- Spring Boot Starter Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

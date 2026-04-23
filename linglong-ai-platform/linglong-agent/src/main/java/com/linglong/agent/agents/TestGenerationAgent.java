@@ -3,7 +3,7 @@ package com.linglong.agent.agents;
 import com.linglong.agent.core.Agent;
 import com.linglong.agent.model.AgentContext;
 import com.linglong.agent.model.AgentResult;
-import com.linglong.llm.service.LLMService;
+import com.linglong.agent.llm.LLMService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

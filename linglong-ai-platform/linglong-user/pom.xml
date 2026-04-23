@@ -21,25 +21,7 @@
     </properties>
 
     <dependencies>
-        <!-- 1. 公共模块：排除旧版 MyBatis Plus 依赖 -->
-        <dependency>
-            <groupId>com.linglong</groupId>
-            <artifactId>linglong-common</artifactId>
-            <exclusions>
-                <!-- 排除父工程或 common 模块中可能传递过来的旧版 starter -->
-                <exclusion>
-                    <groupId>com.baomidou</groupId>
-                    <artifactId>mybatis-plus-boot-starter</artifactId>
-                </exclusion>
-                <!-- 排除 core 包，防止版本不一致 -->
-                <exclusion>
-                    <groupId>com.baomidou</groupId>
-                    <artifactId>mybatis-plus</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- 2. Spring Boot Web -->
+        <!-- 1. Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>

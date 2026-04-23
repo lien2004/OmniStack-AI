@@ -1,7 +1,7 @@
 package com.lingnong.user.controller;
 
 
-import com.linglong.common.result.Result;
+import com.lingnong.user.common.Result;
 import com.lingnong.user.dto.AdminUpdateUserRequest;
 import com.lingnong.user.dto.ForgotPasswordRequest;
 import com.lingnong.user.dto.LoginRequest;

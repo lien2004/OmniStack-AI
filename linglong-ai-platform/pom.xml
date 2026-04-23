@@ -45,12 +45,10 @@
     </properties>
 
     <modules>
-        <module>linglong-common</module>
         <module>linglong-llm-core</module>
         <module>linglong-mcp-server</module>
         <module>linglong-agent</module>
         <module>linglong-engine</module>
-        <module>linglong-project</module>
         <module>linglong-infra</module>
         <module>linglong-gateway</module>
         <module>linglong-user</module>
@@ -83,38 +81,6 @@
                 <version>${spring-ai.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            
-            <!-- Internal Modules -->
-            <dependency>
-                <groupId>com.linglong</groupId>
-                <artifactId>linglong-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.linglong</groupId>
-                <artifactId>linglong-llm-core</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.linglong</groupId>
-                <artifactId>linglong-mcp-server</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.linglong</groupId>
-                <artifactId>linglong-agent</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.linglong</groupId>
-                <artifactId>linglong-engine</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.linglong</groupId>
-                <artifactId>linglong-infra</artifactId>
-                <version>${project.version}</version>
             </dependency>
             
             <!-- LangChain4j -->

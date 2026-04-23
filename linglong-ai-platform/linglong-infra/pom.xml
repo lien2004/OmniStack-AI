@@ -16,12 +16,6 @@
     <description>基础设施模块 - 数据库、Redis、Git、Docker SDK</description>
 
     <dependencies>
-        <!-- Common Module -->
-        <dependency>
-            <groupId>com.linglong</groupId>
-            <artifactId>linglong-common</artifactId>
-        </dependency>
-        
         <!-- Spring Boot Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -22,7 +22,7 @@ public class MySQLDataSourceConfig {
 
     private static final Logger log = LoggerFactory.getLogger(MySQLDataSourceConfig.class);
 
-    @Value("${chat.datasource.url:jdbc:mysql://localhost:3306/linglong_chat?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}")
+    @Value("${chat.datasource.url:jdbc:mysql://8.137.117.129:3306/linglong_chat?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}")
     private String url;
 
     @Value("${chat.datasource.username:root}")

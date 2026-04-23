@@ -1,6 +1,6 @@
 package com.linglong.engine.model;
 
-import com.linglong.agent.model.AgentContext;
+import com.linglong.engine.agent.AgentContext;
 
 import java.time.LocalDateTime;
 import java.util.Map;

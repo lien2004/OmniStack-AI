@@ -17,12 +17,6 @@
     <packaging>jar</packaging>
 
     <dependencies>
-        <!-- Common Module -->
-        <dependency>
-            <groupId>com.linglong</groupId>
-            <artifactId>linglong-common</artifactId>
-        </dependency>
-        
         <!-- Spring Cloud Gateway -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

@@ -53,6 +53,8 @@ bailian:
   base-url: https://codeflow.asia/v1
   api-key: your-api-key
   model: gpt-5.4-mini
+  temperature: 0.7
+  max-tokens: 4096
 
 # MCP Server配置
 mcp:

@@ -16,24 +16,6 @@
     <description>10大Agent的具体实现</description>
 
     <dependencies>
-        <!-- Common Module -->
-        <dependency>
-            <groupId>com.linglong</groupId>
-            <artifactId>linglong-common</artifactId>
-        </dependency>
-        
-        <!-- LLM Core Module -->
-        <dependency>
-            <groupId>com.linglong</groupId>
-            <artifactId>linglong-llm-core</artifactId>
-        </dependency>
-        
-        <!-- MCP Server Module -->
-        <dependency>
-            <groupId>com.linglong</groupId>
-            <artifactId>linglong-mcp-server</artifactId>
-        </dependency>
-        
         <!-- Spring Boot Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

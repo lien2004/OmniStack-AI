@@ -16,34 +16,29 @@
     <description>Agent编排引擎 - 工作流管理、状态机</description>
 
     <dependencies>
-        <!-- Common Module -->
-        <dependency>
-            <groupId>com.linglong</groupId>
-            <artifactId>linglong-common</artifactId>
-        </dependency>
-        
-        <!-- Agent Module -->
-        <dependency>
-            <groupId>com.linglong</groupId>
-            <artifactId>linglong-agent</artifactId>
-        </dependency>
-        
-        <!-- Infra Module -->
-        <dependency>
-            <groupId>com.linglong</groupId>
-            <artifactId>linglong-infra</artifactId>
-        </dependency>
-        
         <!-- Spring Boot Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
-        
+
+        <!-- Spring Boot WebFlux -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
         <!-- Reactor -->
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
+        </dependency>
+
+        <!-- Freemarker -->
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.32</version>
         </dependency>
     </dependencies>
 
