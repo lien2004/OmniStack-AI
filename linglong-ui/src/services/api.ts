@@ -180,4 +180,25 @@ export const aiChat = async (message: string) => {
   return response
 }
 
+// AI图片生成（文生图 / 图生图）—— 走 /ai 代理到 llm-core:8084
+export const generateImage = async (formData: FormData) => {
+  const response = await axios.post('/ai/image/generate', formData, {
+    timeout: 300000,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
+    },
+  })
+  return response
+}
+
+// 获取图片生成服务状态 —— 走 /ai 代理到 llm-core:8084
+export const getImageGenStatus = async () => {
+  const response = await axios.get('/ai/image/status', {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
+    },
+  })
+  return response
+}
+
 export default api

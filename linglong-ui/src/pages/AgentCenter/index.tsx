@@ -90,6 +90,7 @@ const typeLabelMap: Record<string, string> = {
   DEPLOYMENT: '部署',
   DEBUGGING: '调试',
   OPTIMIZATION: '优化',
+  RESUME: '简历助手',
 }
 
 const typeColorMap: Record<string, string> = {
@@ -103,6 +104,7 @@ const typeColorMap: Record<string, string> = {
   DEPLOYMENT: 'volcano',
   DEBUGGING: 'red',
   OPTIMIZATION: 'gold',
+  RESUME: 'lime',
 }
 
 function AgentCenter() {

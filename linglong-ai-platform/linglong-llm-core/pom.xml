@@ -147,6 +147,13 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- 智谱AI Java SDK (zai-sdk) -->
+        <dependency>
+            <groupId>ai.z.openapi</groupId>
+            <artifactId>zai-sdk</artifactId>
+            <version>0.3.2</version>
+        </dependency>
+
         <!-- SpringDoc OpenAPI - Swagger UI -->
         <dependency>
             <groupId>org.springdoc</groupId>

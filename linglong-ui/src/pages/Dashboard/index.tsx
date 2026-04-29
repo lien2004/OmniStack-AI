@@ -11,6 +11,8 @@ import {
   ThunderboltOutlined,
   AppstoreOutlined,
   ArrowRightOutlined,
+  PictureOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons'
 import './style.css'
 
@@ -41,6 +43,24 @@ const featuredApps = [
     iconBg: 'linear-gradient(135deg, #fa8c16, #ffd591)',
     path: '/mcp',
     tags: ['MCP协议', '工具调用', '能力扩展'],
+  },
+  {
+    id: 4,
+    title: 'AI 图片生成',
+    desc: '基于 GLM-image，支持文生图与图生图创作。',
+    icon: <PictureOutlined />,
+    iconBg: 'linear-gradient(135deg, #a855f7, #d8b4fe)',
+    path: '/image-generation',
+    tags: ['Gemini', '文生图', '图生图'],
+  },
+  {
+    id: 5,
+    title: 'AI 简历助手',
+    desc: '基于 gpt-5.5，智能生成简历、专业测评分析、一键优化完善。',
+    icon: <FileTextOutlined />,
+    iconBg: 'linear-gradient(135deg, #52c41a, #95de64)',
+    path: '/resume',
+    tags: ['gpt-5.5', '简历生成', '测评优化'],
   },
 ]
 
@@ -127,6 +147,28 @@ const appList = [
     iconBg: '#13c2c21a',
     iconColor: '#13c2c2',
     path: '/settings',
+  },
+  {
+    id: 7,
+    name: 'AI 图片生成',
+    nameEn: 'AI Image Generation',
+    desc: '基于 GLM-image 模型，支持文生图与图生图创作。',
+    category: 'agent',
+    icon: <PictureOutlined />,
+    iconBg: '#a855f71a',
+    iconColor: '#a855f7',
+    path: '/image-generation',
+  },
+  {
+    id: 8,
+    name: 'AI 简历助手',
+    nameEn: 'AI Resume Builder',
+    desc: '基于 gpt-5.5 模型，智能生成简历、专业测评分析、一键优化完善。',
+    category: 'agent',
+    icon: <FileTextOutlined />,
+    iconBg: '#52c41a1a',
+    iconColor: '#52c41a',
+    path: '/resume',
   },
 ]
 

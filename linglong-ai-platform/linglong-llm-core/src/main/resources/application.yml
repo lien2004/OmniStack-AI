@@ -4,26 +4,26 @@ server:
 spring:
   application:
     name: linglong-llm-core
-  
+
   # 文件上传配置
   servlet:
     multipart:
       enabled: true
       max-file-size: 100MB       # 单个文件最大 100MB
       max-request-size: 110MB   # 请求体最大 110MB
-  
+
   # 排除 Ollama 自动配置
   autoconfigure:
     exclude:
       - org.springframework.ai.autoconfigure.ollama.OllamaAutoConfiguration
-  
+
   # PostgreSQL数据库配置 - 用于向量存储
   datasource:
     url: jdbc:postgresql://localhost:5432/linglongpg
     username: linglong
     password: your-password
     driver-class-name: org.postgresql.Driver
-  
+
   # Redis配置 - 用于缓存对话历史、Token使用量等
   data:
     redis:
@@ -38,7 +38,7 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
-  
+
   # Spring AI配置
   ai:
     openai:
@@ -76,8 +76,8 @@ vector:
     dimensions: 1024   # 智谱 embedding-3 向量维度
     table-name: vector_store
     initialize-schema: false  # schema 已由 init-pgvector.sql 手动初始化，禁止每次启动重建（会破坏 vector_store VIEW）
-  
-# 智谱AI配置
+
+# 智谱AI配置（聊天 + 图片生成）
 zhipu:
   api-key: your-api-key
   model: glm-4.6
@@ -85,6 +85,13 @@ zhipu:
   max-tokens: 2000
   embedding:
     model: embedding-3  # 向量检索用模型，1024 维
+  # GLM-Image 图片生成配置
+  # 推荐尺寸：1024x1024 | 1280x1280 | 1568x1056 | 1056x1568 | 1728x960 | 960x1728
+  # 自定义参数：长宽需在 512-2048 范围内，且均为 32 的整数倍
+  image:
+    api-key: your-api-key
+    model: glm-image
+    size: 1024x1024
 
 # RAG 配置
 rag:

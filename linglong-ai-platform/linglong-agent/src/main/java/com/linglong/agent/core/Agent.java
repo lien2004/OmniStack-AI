@@ -76,6 +76,7 @@ public interface Agent {
         DOCUMENTATION,          // 文档生成Agent
         DEPLOYMENT,             // 部署Agent
         DEBUGGING,              // 调试Agent
-        OPTIMIZATION            // 优化Agent
+        OPTIMIZATION,           // 优化Agent
+        RESUME                  // 简历生成Agent
     }
 }

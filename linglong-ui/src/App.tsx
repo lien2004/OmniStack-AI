@@ -5,6 +5,8 @@ import ProjectList from './pages/ProjectList'
 import ProjectDetail from './pages/ProjectDetail'
 import CreateProject from './pages/CreateProject'
 import AgentCenter from './pages/AgentCenter'
+import ResumeBuilder from './pages/ResumeBuilder'
+import ImageGeneration from './pages/ImageGeneration'
 import MCPHub from './pages/MCPHub'
 import Settings from './pages/Settings'
 import Chat from './pages/Chat'
@@ -25,6 +27,8 @@ function App() {
         <Route path="projects/create" element={<CreateProject />} />
         <Route path="projects/:id" element={<ProjectDetail />} />
         <Route path="agents" element={<AgentCenter />} />
+        <Route path="resume" element={<ResumeBuilder />} />
+        <Route path="image-generation" element={<ImageGeneration />} />
         <Route path="mcp" element={<MCPHub />} />
         <Route path="settings" element={<Settings />} />
         <Route path="profile" element={<Profile />} />
