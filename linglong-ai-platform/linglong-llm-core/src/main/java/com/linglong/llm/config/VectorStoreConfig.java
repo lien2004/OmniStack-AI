@@ -74,8 +74,10 @@ public class VectorStoreConfig {
      */
     /**
      * 安全 JdbcTemplate：
-     * 1. 跳过系统未安装的 uuid-ossp 扩展创建
-     * 2. 将所有 SQL 中的 uuid_generate_v4() 替换为 gen_random_uuid()（PG内置，无需扩展）
+     * 1. 尝试创建 vector 扩展（pgvector），失败时记录警告
+     * 2. 跳过系统未安装的 uuid-ossp 扩展创建
+     * 3. 将所有 SQL 中的 uuid_generate_v4() 替换为 gen_random_uuid()（PG内置，无需扩展）
+     * 4. CREATE TABLE 失败时（如 vector 类型不存在）优雅跳过，避免应用启动失败
      */
     private JdbcTemplate safeJdbcTemplate() {
         DriverManagerDataSource pgDataSource = new DriverManagerDataSource();
@@ -83,6 +85,16 @@ public class VectorStoreConfig {
         pgDataSource.setUrl(pgUrl);
         pgDataSource.setUsername(pgUsername);
         pgDataSource.setPassword(pgPassword);
+        JdbcTemplate rawJdbcTemplate = new JdbcTemplate(pgDataSource);
+
+        // 尝试提前创建 pgvector 扩展
+        try {
+            rawJdbcTemplate.execute("CREATE EXTENSION IF NOT EXISTS vector");
+            log.info("[VectorStore] pgvector 扩展已就绪");
+        } catch (DataAccessException e) {
+            log.warn("[VectorStore] pgvector 扩展创建失败，向量存储功能将不可用。请在 PostgreSQL 中安装 pgvector 扩展: {}", e.getMessage());
+        }
+
         return new JdbcTemplate(pgDataSource) {
             @Override
             public void execute(String sql) throws DataAccessException {
@@ -104,9 +116,19 @@ public class VectorStoreConfig {
                     } catch (DataAccessException e) {
                         log.warn("[VectorStore] 扩展创建跳过（系统未安装）: {} | 原因: {}", fixedSql.trim(), e.getMessage());
                     }
-                } else {
-                    super.execute(fixedSql);
+                    return;
                 }
+                // 3. CREATE TABLE 语句，失败时优雅跳过（如 vector 类型不存在）
+                if (fixedSql.toUpperCase().contains("CREATE TABLE")) {
+                    try {
+                        super.execute(fixedSql);
+                    } catch (DataAccessException e) {
+                        log.warn("[VectorStore] 建表语句跳过: {} | 原因: {}", fixedSql.trim(), e.getMessage());
+                    }
+                    return;
+                }
+                // 4. 其他 SQL 正常执行
+                super.execute(fixedSql);
             }
         };
     }

@@ -284,6 +284,15 @@ public class VectorStoreController {
             params = new Object[]{ category, size, page * size };
         }
 
+        if (!isVectorStoreAvailable()) {
+            Map<String, Object> empty = new LinkedHashMap<>();
+            empty.put("total", 0);
+            empty.put("page", page);
+            empty.put("size", size);
+            empty.put("items", Collections.emptyList());
+            return empty;
+        }
+
         long total = category.isBlank()
                 ? pgJdbcTemplate.queryForObject(countSql, Long.class)
                 : pgJdbcTemplate.queryForObject(countSql, Long.class, category);
@@ -316,6 +325,9 @@ public class VectorStoreController {
     @Operation(summary = "获取单条文档完整内容")
     @GetMapping("/doc/{id}")
     public ResponseEntity<Map<String, Object>> getDocument(@PathVariable("id") String id) {
+        if (!isVectorStoreAvailable()) {
+            return ResponseEntity.notFound().build();
+        }
         List<Map<String, Object>> rows = pgJdbcTemplate.queryForList(
                 "SELECT id, content, metadata FROM vector_store WHERE id = ?::uuid", id);
         if (rows.isEmpty()) {
@@ -346,6 +358,18 @@ public class VectorStoreController {
     }
 
     // ==================== 工具方法 ====================
+
+    /** 检查 vector_store 表是否存在 */
+    private boolean isVectorStoreAvailable() {
+        try {
+            Integer count = pgJdbcTemplate.queryForObject(
+                    "SELECT count(*) FROM information_schema.tables WHERE table_name = 'vector_store'", Integer.class);
+            return count != null && count > 0;
+        } catch (Exception e) {
+            log.warn("[VectorStore] 检查 vector_store 表失败: {}", e.getMessage());
+            return false;
+        }
+    }
 
     /** 使用 Apache Tika 提取文件文本 */
     private String extractText(File file, String filename) throws Exception {

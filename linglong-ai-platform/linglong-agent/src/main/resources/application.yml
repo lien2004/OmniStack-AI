@@ -10,8 +10,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/linglongpg
     username: linglong
     password: your-password
-    driver-class-name: org.postgresql.Driver
-  
+
   # Redis配置 - 用于Agent上下文共享
   data:
     redis:
