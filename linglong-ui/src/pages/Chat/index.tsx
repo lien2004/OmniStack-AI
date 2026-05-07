@@ -31,10 +31,20 @@ const MODEL_LIST = [
   { value: 'glm-5.1',     label: 'GLM-5.1',       desc: '下一代旗舰，最强能力',     tag: 'NEW',   tagColor: '#fa8c16',  provider: '智谱AI' },
   { value: 'glm-4.5',     label: 'GLM-4.5',       desc: '通用均衡，稳定可靠',       tag: '均衡',  tagColor: '#13c2c2',  provider: '智谱AI' },
   { value: 'glm-4.5-air', label: 'GLM-4.5-Air',   desc: '轻量高效，快速响应',       tag: '轻量',  tagColor: '#8c8c8c',  provider: '智谱AI' },
-  // CodeFlow/灵龙AI 系列
-  { value: 'gpt-5.4-mini',label: '灵龙AI Mini',   desc: '灵龙AI · 轻量快速',       tag: '快速',  tagColor: '#52c41a',  provider: '灵龙AI' },
-  { value: 'gpt-5',       label: '灵龙AI GPT-5',  desc: '灵龙AI · 旗舰版',         tag: '旗舰',  tagColor: '#722ed1',  provider: '灵龙AI' },
-  { value: 'linglong',    label: '灵龙AI 默认',    desc: 'CodeFlow · 智能编程助手', tag: 'CODE',  tagColor: '#1677ff',  provider: '灵龙AI' },
+  // DeepSeek 系列
+  { value: 'deepseek-v4-pro',  label: 'DeepSeek-V4-Pro',  desc: '深度推理，思考模式',   tag: '思考',  tagColor: '#722ed1',  provider: 'DeepSeek' },
+  { value: 'deepseek-v4-flash', label: 'DeepSeek-V4-Flash', desc: '极速响应，高性价比',  tag: '快速',  tagColor: '#52c41a',  provider: 'DeepSeek' },
+  // CodeFlow 灵龙AI 系列 - OpenAI GPT
+  { value: 'gpt-5.5',           label: 'GPT-5.5',           desc: 'CodeFlow · 最新旗舰',    tag: '旗舰',  tagColor: '#722ed1',  provider: '灵龙AI' },
+  { value: 'gpt-5.4',           label: 'GPT-5.4',           desc: 'CodeFlow · 高性能版',    tag: '强大',  tagColor: '#eb2f96',  provider: '灵龙AI' },
+  { value: 'gpt-5.4-mini',      label: 'GPT-5.4-Mini',      desc: 'CodeFlow · 轻量快速',    tag: '快速',  tagColor: '#52c41a',  provider: '灵龙AI' },
+  { value: 'gpt-5.2',           label: 'GPT-5.2',           desc: 'CodeFlow · 均衡版',      tag: '均衡',  tagColor: '#13c2c2',  provider: '灵龙AI' },
+  { value: 'linglong',          label: '灵龙AI 默认',       desc: 'CodeFlow · 智能编程助手', tag: 'CODE',  tagColor: '#1677ff',  provider: '灵龙AI' },
+  // CodeFlow 灵龙AI 系列 - Anthropic Claude
+  { value: 'claude-opus-4-7',   label: 'Claude Opus 4.7',   desc: 'CodeFlow · 最强推理',    tag: '顶级',  tagColor: '#f5222d',  provider: '灵龙AI' },
+  { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6', desc: 'CodeFlow · 高性价比',    tag: '推荐',  tagColor: '#1677ff',  provider: '灵龙AI' },
+  { value: 'claude-opus-4-6',   label: 'Claude Opus 4.6',   desc: 'CodeFlow · 深度思考',    tag: '强大',  tagColor: '#eb2f96',  provider: '灵龙AI' },
+  { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5', desc: 'CodeFlow · 极速轻量', tag: '轻量',  tagColor: '#8c8c8c',  provider: '灵龙AI' },
 ];
 
 // 快捷提示词
@@ -531,6 +541,25 @@ const ChatPage: React.FC = () => {
                   <Select.Option key={m.value} value={m.value} label={
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <ApiOutlined style={{ color: m.tagColor }} />
+                      {m.label}
+                    </span>
+                  }>
+                    <div className="model-option">
+                      <div className="model-option-left">
+                        <span className="model-option-name">{m.label}</span>
+                        <span className="model-option-desc">{m.desc}</span>
+                      </div>
+                      <Tag color={m.tagColor} style={{ fontSize: 10 }}>{m.tag}</Tag>
+                    </div>
+                  </Select.Option>
+                ))}
+              </Select.OptGroup>
+              {/* DeepSeek 分组 */}
+              <Select.OptGroup label="DeepSeek">
+                {MODEL_LIST.filter(m => m.provider === 'DeepSeek').map(m => (
+                  <Select.Option key={m.value} value={m.value} label={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <ThunderboltOutlined style={{ color: m.tagColor }} />
                       {m.label}
                     </span>
                   }>

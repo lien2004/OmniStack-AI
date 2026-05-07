@@ -9,10 +9,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LLMConfig {
 
-    @Value("${zhipu.api-key:397f408166f94e93a63e9f33cd3cd875.0T9IB0n1QU0dMbIy}")
+    @Value("${zhipu.api-key:3fdfff7268f548058f57baa43dce3e5e.KAUNLL8CTCzXj5uv}")
     private String apiKey;
 
     public String getApiKey() {
         return apiKey;
     }
 }
+// 新增状态

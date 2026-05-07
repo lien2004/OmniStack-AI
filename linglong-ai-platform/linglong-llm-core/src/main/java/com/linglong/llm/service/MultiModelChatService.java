@@ -21,8 +21,9 @@ import java.util.concurrent.Executors;
 /**
  * 多模型对话服务
  * 支持模型路由：
- *   - GLM 系列      → 智谱AI  (https://open.bigmodel.cn)
- *   - gpt/linglong  → CodeFlow/灵龙AI (OpenAI 兼容接口)
+ *   - GLM 系列         → 智谱AI  (https://open.bigmodel.cn)
+ *   - gpt/linglong/claude → CodeFlow/灵龙AI (OpenAI 兼容接口)
+ *   - deepseek 系列    → DeepSeek (https://api.deepseek.com, 支持思考模式)
  * 同时支持同步和 SSE 流式输出
  */
 @Service
@@ -42,6 +43,16 @@ public class MultiModelChatService {
     private String bailianApiKey;
     @Value("${bailian.model:gpt-5.4-mini}")
     private String bailianDefaultModel;
+
+    // --- DeepSeek ---
+    @Value("${deepseek.base-url:https://api.deepseek.com}")
+    private String deepseekBaseUrl;
+    @Value("${deepseek.api-key:}")
+    private String deepseekApiKey;
+    @Value("${deepseek.thinking-enabled:false}")
+    private boolean deepseekThinkingEnabled;
+    @Value("${deepseek.reasoning-effort:high}")
+    private String deepseekReasoningEffort;
 
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
@@ -140,7 +151,12 @@ public class MultiModelChatService {
                                 @SuppressWarnings("unchecked")
                                 Map<String, Object> delta = (Map<String, Object>) choices.get(0).get("delta");
                                 if (delta != null) {
+                                    // 优先取 content 字段
                                     String content = (String) delta.get("content");
+                                    // DeepSeek 思考模式：content 可能为空，取 reasoning_content
+                                    if (content == null || content.isEmpty()) {
+                                        content = (String) delta.get("reasoning_content");
+                                    }
                                     if (content != null && !content.isEmpty()) {
                                         fullContent.append(content);
                                         emitter.send(SseEmitter.event().data(content));
@@ -174,11 +190,15 @@ public class MultiModelChatService {
     // =====================================================================
 
     private String resolveUrl(String model) {
-        return isZhipuModel(model) ? ZHIPU_URL : (bailianBaseUrl + "/chat/completions");
+        if (isZhipuModel(model)) return ZHIPU_URL;
+        if (isDeepSeekModel(model)) return deepseekBaseUrl + "/chat/completions";
+        return bailianBaseUrl + "/chat/completions";
     }
 
     private String resolveApiKey(String model) {
-        return isZhipuModel(model) ? zhipuApiKey : bailianApiKey;
+        if (isZhipuModel(model)) return zhipuApiKey;
+        if (isDeepSeekModel(model)) return deepseekApiKey;
+        return bailianApiKey;
     }
 
     private String resolveModel(String model) {
@@ -194,6 +214,11 @@ public class MultiModelChatService {
         return lower.startsWith("glm");
     }
 
+    public boolean isDeepSeekModel(String model) {
+        if (model == null || model.isBlank()) return false;
+        return model.toLowerCase().startsWith("deepseek");
+    }
+
     private Map<String, Object> buildRequestBody(List<Map<String, Object>> messages,
                                                   String model, Double temperature,
                                                   Integer maxTokens, boolean stream) {
@@ -203,6 +228,16 @@ public class MultiModelChatService {
         body.put("stream", stream);
         if (temperature != null) body.put("temperature", temperature);
         if (maxTokens != null)   body.put("max_tokens", maxTokens);
+
+        // DeepSeek 思考模式：为 deepseek-v4-pro 等推理模型注入 thinking 和 reasoning_effort 参数
+        if (isDeepSeekModel(model) && deepseekThinkingEnabled) {
+            Map<String, Object> thinking = new HashMap<>();
+            thinking.put("type", "enabled");
+            body.put("thinking", thinking);
+            body.put("reasoning_effort", deepseekReasoningEffort);
+            log.debug("DeepSeek 思考模式已开启: reasoning_effort={}", deepseekReasoningEffort);
+        }
+
         return body;
     }
 
@@ -223,7 +258,13 @@ public class MultiModelChatService {
             List<Map<String, Object>> choices = (List<Map<String, Object>>) resp.get("choices");
             if (choices != null && !choices.isEmpty()) {
                 Map<String, Object> msg = (Map<String, Object>) choices.get(0).get("message");
-                if (msg != null) return (String) msg.get("content");
+                if (msg != null) {
+                    String content = (String) msg.get("content");
+                    if (content != null) return content;
+                    // 兼容 DeepSeek 思考模式：content 可能为 null，回复在 reasoning_content 字段
+                    String reasoningContent = (String) msg.get("reasoning_content");
+                    if (reasoningContent != null) return reasoningContent;
+                }
             }
             throw new RuntimeException("响应格式异常: " + responseBody);
         } catch (RuntimeException e) {

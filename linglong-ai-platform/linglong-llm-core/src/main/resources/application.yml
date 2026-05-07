@@ -63,12 +63,21 @@ bailian:
   model: gpt-5.4-mini
   display-name: 灵龙AI
 
+# ========== DeepSeek 配置 ==========
+deepseek:
+  base-url: https://api.deepseek.com
+  api-key: your-api-key
+  model: deepseek-v4-pro
+  thinking-enabled: true
+  reasoning-effort: high
+
 # ========== 多模型路由配置 ==========
-# 模型提供商路由：GLM系列 → 智谱AI; gpt/linglong系列 → CodeFlow/灵龙AI
+# 模型提供商路由：GLM系列 → 智谱AI; gpt/linglong/claude系列 → CodeFlow/灵龙AI; deepseek系列 → DeepSeek
 model:
   routing:
     zhipu-models: glm  # 以glm开头的模型路由到智谱AI
-    linglong-models: gpt,linglong  # 路由到CodeFlow/灵龙AI
+    linglong-models: gpt,linglong,claude  # 路由到CodeFlow/灵龙AI
+    deepseek-models: deepseek  # 路由到DeepSeek
 
 # 向量存储配置
 vector:
