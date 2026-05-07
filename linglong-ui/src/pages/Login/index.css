@@ -6,36 +6,59 @@
   overflow: hidden;
 }
 
-/* 左侧品牌区 - 优化版 */
+/* 左侧品牌区 */
 .login-left {
   flex: 1;
-  background: linear-gradient(95deg, #202648 0%, #485078 100%);
+  background: linear-gradient(135deg, #0b1230 0%, #17224b 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px;
   color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 背景装饰点 */
+.login-left::before,
+.login-left::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(121, 163, 226, 0.3);
+}
+.login-left::before {
+  top: 5%;
+  left: 20%;
+}
+.login-left::after {
+  bottom: 25%;
+  right: 35%;
+  background: rgba(139, 92, 246, 0.3);
 }
 
 .brand-content {
-  max-width: 520px;
+  max-width: 560px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 40px; /* 统一模块间距 */
+  gap: 36px;
+  z-index: 1;
 }
 
-/* Logo 区域 - 居中对齐 + 美观排版 */
+/* Logo 区域 */
 .brand-logo {
   display: flex;
   align-items: center;
-  gap: 18px;
-  justify-content: center;
+  gap: 16px;
 }
 
-.brand-logo-icon {
-  font-size: 52px;
-  line-height: 1;
+.brand-logo-icon img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
 }
 
 .brand-title-wrapper {
@@ -49,128 +72,292 @@
   font-weight: 700;
   color: #ffffff;
   line-height: 1.2;
-  letter-spacing: 1px;
 }
 
 .brand-title-sub {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   color: rgba(121, 163, 226, 0.9);
-  line-height: 1.3;
+  letter-spacing: 6px;
 }
 
-/* 品牌描述 - 居中、干净、易读 */
+/* 品牌描述 */
 .brand-description {
-  text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .brand-description-title {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 45px;
+  font-weight: 800;
   color: #ffffff;
-  line-height: 1.4;
+  line-height: 1.15;
+  margin: 0;
 }
 
 .brand-description-content {
-  font-size: 15px;
+  font-size: 18px;
+  font-weight: 600;
   color: rgba(121, 163, 226, 0.85);
-  line-height: 1.6;
-  white-space: pre-line;
+  margin: 0;
 }
 
-/* 功能列表 - 卡片式、优雅、有呼吸感 */
+.brand-description-contentmain {
+  font-size: 16px;
+  font-weight: 400;
+  color: rgba(230, 234, 241, 0.85);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 功能列表 */
 .features-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 0 20px;
+  gap: 24px;
 }
 
-.feature {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.92);
-  line-height: 1.5;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  border-left: 3px solid #79a3e2;
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
 }
 
-/* 右侧表单区 */
+.feature-icon {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.feature-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+.feature-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.feature-desc {
+  font-size: 13px;
+  color: rgba(164, 179, 211, 0.85);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* 右侧登录表单 */
 .login-right {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
+  background: #f8fafc;
   padding: 40px;
+  position: relative;
+}
+
+.login-right::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, transparent 50%, #e8f0fe 50%);
+  border-radius: 0 0 0 80px;
 }
 
 .login-form-container {
   width: 100%;
   max-width: 400px;
+  z-index: 1;
+  margin-top: 30px;
 }
 
-/* 表单头部 */
 .form-header {
   text-align: center;
   margin-bottom: 32px;
 }
 
 .form-header h2 {
-  font-size: 28px;
-  font-weight: 600;
-  color: #1a1a2e;
-  margin-bottom: 8px;
+  font-size: 30px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 12px;
 }
 
 .form-header p {
-  color: #666666;
+  color: #718096;
+  font-size: 15px;
+  margin: 0;
+}
+
+/* 角色切换按钮 */
+.role-tabs {
+  display: flex;
+  background: #e8f0fe;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 32px;
+}
+
+.role-tab {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.role-tab.active {
+  background: #ffffff;
+  color: #2d4872;
+  box-shadow: 0 2px 8px rgba(45, 72, 114, 0.15);
+}
+
+/* Tabs 标签（账号注册往上移） */
+.ant-tabs-nav {
+  margin-bottom: 16px !important;
+  margin-top: -8px !important;
+}
+
+.login-tab-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.login-tab-title active {
+  color: #2d4872;
+  position: relative;
+}
+
+.login-tab-title.active::after {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #2d4872;
+}
+
+/* 输入框样式 */
+.login-form .login-input {
+  height: 56px;
+  border-radius: 12px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  font-size: 16px;
+}
+
+.login-form .login-input:focus {
+  background: #ffffff;
+  border-color: #2d4872;
+  box-shadow: 0 0 0 2px rgba(45, 72, 114, 0.1);
+}
+
+/* 验证码输入框 */
+.code-input-wrapper {
+  display: flex;
+  gap: 12px;
+}
+
+.code-input-wrapper .login-input {
+  flex: 1;
+}
+
+.code-button {
+  width: 130px;
+  height: 56px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #2d4872;
   font-size: 14px;
 }
 
-/* 表单项选项 */
+.code-button:hover:not(:disabled) {
+  background: #e8f0fe;
+}
+
+.code-button:disabled {
+  background: #f7fafc;
+  color: #a0aec0;
+}
+
+/* 选项栏 */
 .form-options {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 32px;
 }
 
-.form-options a {
-  color: #667eea;
+.remember-checkbox {
+  color: #4a5568;
+  font-size: 16px;
+}
+
+.forgot-password {
+  color: #2d4872;
+  font-size: 16px;
   text-decoration: none;
+  cursor: pointer;
 }
 
-.form-options a:hover {
-  color: #764ba2;
+.forgot-password:hover {
+  color: #1a2d4d;
 }
 
-/* Tabs 样式 */
-.login-form-container .ant-tabs-tab-active {
-  color: #667eea;
+/* 登录按钮 + 注册按钮 统一样式 + 鼠标手掌 */
+.login-button {
+  height: 56px;
+  border-radius: 12px;
+  border: none;
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(45, 72, 114, 0.3);
+  cursor: pointer; /* 鼠标手掌 */
 }
 
-.login-form-container .ant-tabs-ink-bar {
-  background: #667eea;
+.login-button:hover {
+  background: linear-gradient(135deg, #2d4872 0%, #17224b 100%);
+  box-shadow: 0 4px 12px rgba(45, 72, 114, 0.3);
 }
 
-/* 注册链接 */
+/* 底部链接统一样式 */
 .register-link {
   text-align: center;
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
+  margin-top: 32px;
+  font-size: 16px;
+  color: #718096;
 }
 
-.register-link a {
-  color: #667eea;
-  font-weight: 500;
+.register-link a,
+.register-link-highlight {
+  color: #2d4872;
+  font-weight: 600;
   text-decoration: none;
+  margin-left: 4px;
+  cursor: pointer; /* 鼠标手掌 */
 }
 
-.register-link a:hover {
-  color: #764ba2;
+.register-link a:hover,
+.register-link-highlight:hover {
+  color: #1a2d4d;
 }

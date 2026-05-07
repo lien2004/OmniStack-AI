@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Form, Input, Button, message, Tabs, Radio } from 'antd'
-import { UserOutlined, LockOutlined, MobileOutlined, SafetyCertificateOutlined, CrownOutlined, TeamOutlined } from '@ant-design/icons'
+import { Form, Input, Button, message } from 'antd'
+import { UserOutlined, LockOutlined, MobileOutlined, SafetyCertificateOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { register, sendSmsCode } from '../../services/api'
 import './index.css'
@@ -9,10 +9,10 @@ const Register = () => {
   const [loading, setLoading] = useState(false)
   const [codeLoading, setCodeLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
+  const [selectedRole, setSelectedRole] = useState<number>(0)
   const navigate = useNavigate()
   const [form] = Form.useForm()
 
-  // 获取验证码
   const handleSendCode = async () => {
     const mobile = form.getFieldValue('mobile')
     if (!mobile) {
@@ -34,7 +34,6 @@ const Register = () => {
       } else {
         message.success('验证码发送成功，请查收')
       }
-      // 倒计时 60 秒
       let second = 60
       setCountdown(second)
       const timer = setInterval(() => {
@@ -51,14 +50,12 @@ const Register = () => {
     }
   }
 
-  // 注册提交
   const onFinish = async (values: any) => {
     const { username, mobile, password, code } = values
 
     setLoading(true)
     try {
-      // 传给后端：用户名、密码、手机号、验证码
-      const result = await register({ username, password, mobile, verifyCode: code, role: values.role ?? 0 })
+      const result = await register({ username, password, mobile, verifyCode: code, role: selectedRole })
       if (result.success) {
         message.success('注册成功，请登录')
         navigate('/login')
@@ -74,30 +71,63 @@ const Register = () => {
 
   return (
     <div className="login-container-split">
-      {/* 左侧品牌区 */}
+      {/* 左侧：品牌区 */}
       <div className="login-left">
         <div className="brand-content">
           <div className="brand-logo">
-            <span className="brand-logo-icon">🐉</span>
+            <span className="brand-logo-icon">
+              <img src="src/img/LLM.png" alt="灵龙AI Logo" />
+            </span>
             <div className="brand-title-wrapper">
-              <span className="brand-title-main">灵龙AI+</span>
-              <span className="brand-title-sub">智能开发平台</span>
+              <span className="brand-title-main">灵龙AI</span>
+              <span className="brand-title-sub">PRIME INTELLIGENCE SYSTEM</span>
             </div>
           </div>
 
           <div className="brand-description">
-            <p className="brand-description-title">基于AI+DDD的智能开发平台</p>
-            <p className="brand-description-content">
-              通过大语言模型（LLM）+MCP协议+多智能体（Agent）
-              <br />
-              协作，实现业务代码全流程智能研发
+            <p className="brand-description-title">灵动架构<br />龙腾智能</p>
+            <p className="brand-description-content">基于LLM的智能Agent平台</p>
+            <p className="brand-description-contentmain">
+              集成代码开发、智能对话、智能体中心与应用广场的下一代数字化引擎
             </p>
           </div>
 
           <div className="features-list">
-            <div className="feature">🤖 多智能体全流程研发自动化</div>
-            <div className="feature">📐 DDD驱动架构设计自动生成文档</div>
-            <div className="feature">🏢 企业级多租户SaaS平台</div>
+            <div className="feature-item">
+              <div className="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#79a3e2" strokeWidth="2">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
+              </div>
+              <div className="feature-text">
+                <h4 className="feature-title">AI 对话助手</h4>
+                <p className="feature-desc">基于大模型的智能问答、多轮上下文记忆与知识库检索</p>
+              </div>
+            </div>
+
+            <div className="feature-item">
+              <div className="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#79a3e2" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <div className="feature-text">
+                <h4 className="feature-title">智能体中心</h4>
+                <p className="feature-desc">MCP 协议工具集成，打造全生命周期自动化的能力边界</p>
+              </div>
+            </div>
+
+            <div className="feature-item">
+              <div className="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#79a3e2" strokeWidth="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
+              <div className="feature-text">
+                <h4 className="feature-title">项目工作台</h4>
+                <p className="feature-desc">微服务版本管理与路由配置，一站式项目生命周期管理</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -110,83 +140,112 @@ const Register = () => {
             <p>注册灵龙AI+智能开发平台</p>
           </div>
 
-          <Tabs activeKey="register" items={[{
-            key: 'register',
-            label: '账号注册',
-            children: (
-              <Form form={form} onFinish={onFinish} size="large">
-                {/* 角色选择 */}
-                <Form.Item name="role" initialValue={0}>
-                  <Radio.Group style={{ width: '100%' }}>
-                    <Radio.Button value={0} style={{ width: '50%', textAlign: 'center' }}>
-                      <TeamOutlined style={{ marginRight: 6 }} />
-                      普通用户
-                    </Radio.Button>
-                    <Radio.Button value={1} style={{ width: '50%', textAlign: 'center' }}>
-                      <CrownOutlined style={{ marginRight: 6 }} />
-                      系统管理员
-                    </Radio.Button>
-                  </Radio.Group>
-                </Form.Item>
+          {/* 角色选择（与登录页面一致的样式） */}
+          <div className="role-tabs">
+            <div
+              className={`role-tab ${selectedRole === 0 ? 'active' : ''}`}
+              onClick={() => setSelectedRole(0)}
+            >
+              <UserOutlined style={{ marginRight: 6 }} />
+              普通用户
+            </div>
+            <div
+              className={`role-tab ${selectedRole === 1 ? 'active' : ''}`}
+              onClick={() => setSelectedRole(1)}
+            >
+              <LockOutlined style={{ marginRight: 6 }} />
+              系统管理员
+            </div>
+          </div>
 
-                <Form.Item
-                  name="username"
-                  rules={[{ required: true, message: '请输入用户名' }]}
+          {/* 注册表单标题 */}
+          <div className="login-tab-header">
+            <span className="login-tab-title active">账号注册</span>
+          </div>
+
+          <Form form={form} onFinish={onFinish} size="large" className="login-form">
+            <Form.Item
+              name="username"
+              rules={[{ required: true, message: '请输入用户名' }]}
+            >
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="用户名"
+                size="large"
+                className="login-input"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="mobile"
+              rules={[
+                { required: true, message: '请输入手机号' },
+                { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' },
+              ]}
+            >
+              <Input
+                prefix={<MobileOutlined />}
+                placeholder="手机号"
+                size="large"
+                className="login-input"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              rules={[
+                { required: true, message: '请输入密码' },
+                { min: 6, message: '密码至少6位' },
+              ]}
+            >
+              <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="密码（至少6位）"
+                size="large"
+                className="login-input"
+                iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="code"
+              rules={[{ required: true, message: '请输入验证码' }]}
+            >
+              <div className="code-input-wrapper">
+                <Input
+                  prefix={<SafetyCertificateOutlined />}
+                  placeholder="验证码"
+                  size="large"
+                  className="login-input"
+                />
+                <Button
+                  size="large"
+                  onClick={handleSendCode}
+                  disabled={codeLoading || countdown > 0}
+                  className="code-button"
                 >
-                  <Input prefix={<UserOutlined />} placeholder="用户名" size="large" />
-                </Form.Item>
+                  {countdown > 0 ? `${countdown}秒后重发` : '获取验证码'}
+                </Button>
+              </div>
+            </Form.Item>
 
-                <Form.Item
-                  name="mobile"
-                  rules={[
-                    { required: true, message: '请输入手机号' },
-                    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' },
-                  ]}
-                >
-                  <Input prefix={<MobileOutlined />} placeholder="手机号" size="large" />
-                </Form.Item>
-
-                <Form.Item
-                  name="password"
-                  rules={[{ required: true, message: '请输入密码' }]}
-                >
-                  <Input.Password prefix={<LockOutlined />} placeholder="密码（至少6位）" size="large" />
-                </Form.Item>
-
-                {/* 验证码 */}
-                <Form.Item
-                  name="code"
-                  rules={[{ required: true, message: '请输入验证码' }]}
-                >
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <Input
-                      prefix={<SafetyCertificateOutlined />}
-                      placeholder="验证码"
-                      size="large"
-                      style={{ flex: 1 }}
-                    />
-                    <Button
-                      size="large"
-                      onClick={handleSendCode}
-                      disabled={codeLoading || countdown > 0}
-                      style={{ width: 130 }}
-                    >
-                      {countdown > 0 ? `${countdown}秒后重发` : '获取验证码'}
-                    </Button>
-                  </div>
-                </Form.Item>
-
-                <Form.Item>
-                  <Button type="primary" htmlType="submit" loading={loading} block size="large">
-                    立即注册
-                  </Button>
-                </Form.Item>
-              </Form>
-            ),
-          }]} />
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                block
+                size="large"
+                className="login-button"
+              >
+                立即注册
+              </Button>
+            </Form.Item>
+          </Form>
 
           <div className="register-link">
-            已有账号？<a onClick={() => navigate('/login')}>立即登录</a>
+            已有账号？
+            <a onClick={() => navigate('/login')} className="register-link-highlight">立即登录</a>
           </div>
         </div>
       </div>

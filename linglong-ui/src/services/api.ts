@@ -108,6 +108,16 @@ export const adminDeleteUser = async (id: number): Promise<ApiResponse> => {
   return response.data as ApiResponse
 }
 
+// 忘记密码
+export const forgotPassword = async (data: {
+  mobile: string
+  verifyCode: string
+  newPassword: string
+}): Promise<ApiResponse> => {
+  const response = await api.post('/user/forgot-password', data)
+  return response.data as ApiResponse
+}
+
 // 退出登录
 export const logoutApi = async (): Promise<void> => {
   try {

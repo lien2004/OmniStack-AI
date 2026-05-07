@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Form, Input, Button, message, Checkbox, Tabs, Radio } from 'antd'
-import { UserOutlined, LockOutlined, CrownOutlined, TeamOutlined } from '@ant-design/icons'
+import { Form, Input, Button, message, Checkbox } from 'antd'
+import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { login } from '../../services/api'
 import { useUserStore } from '../../stores/userStore'
@@ -20,7 +20,6 @@ const Login = () => {
         const userData = result.data?.user || result.data
         const token = result.data?.token
 
-        // 验证角色是否匹配
         if (userData.role !== selectedRole) {
           message.error(
             selectedRole === 1
@@ -33,6 +32,7 @@ const Login = () => {
         setUser(userData)
         if (token) {
           setToken(token)
+          localStorage.setItem('token', token)
         }
         message.success('登录成功')
         navigate('/chat')
@@ -48,33 +48,68 @@ const Login = () => {
 
   return (
     <div className="login-container-split">
-      {/* 左侧 - 品牌展示区 */}
+      {/* 左侧：品牌区 */}
       <div className="login-left">
         <div className="brand-content">
           <div className="brand-logo">
-            <span className="brand-logo-icon">🐉</span>
+            <span className="brand-logo-icon">
+              <img src="src/img/LLM.png" alt="灵龙AI Logo" />
+            </span>
             <div className="brand-title-wrapper">
-              <span className="brand-title-main">灵龙AI+</span>
-              <span className="brand-title-sub">智能开发平台</span>
+              <span className="brand-title-main">灵龙AI</span>
+              <span className="brand-title-sub">PRIME INTELLIGENCE SYSTEM</span>
             </div>
           </div>
+
           <div className="brand-description">
-            <p className="brand-description-title">基于AI+DDD的智能开发平台</p>
-            <p className="brand-description-content">
-              通过大语言模型（LLM）+MCP协议+多智能体（Agent）
-              <br />
-              协作，实现业务代码全流程智能研发
+            <p className="brand-description-title">灵动架构<br />龙腾智能</p>
+            <p className="brand-description-content">基于LLM的智能Agent平台</p>
+            <p className="brand-description-contentmain">
+              集成代码开发、智能对话、智能体中心与应用广场的下一代数字化引擎
             </p>
           </div>
+
           <div className="features-list">
-            <div className="feature">🤖 多智能体全流程研发自动化</div>
-            <div className="feature">📐 DDD驱动架构设计自动生成文档</div>
-            <div className="feature">🏢 企业级多租户SaaS平台</div>
+            <div className="feature-item">
+              <div className="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#79a3e2" strokeWidth="2">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
+              </div>
+              <div className="feature-text">
+                <h4 className="feature-title">AI 对话助手</h4>
+                <p className="feature-desc">基于大模型的智能问答、多轮上下文记忆与知识库检索</p>
+              </div>
+            </div>
+
+            <div className="feature-item">
+              <div className="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#79a3e2" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <div className="feature-text">
+                <h4 className="feature-title">智能体中心</h4>
+                <p className="feature-desc">MCP 协议工具集成，打造全生命周期自动化的能力边界</p>
+              </div>
+            </div>
+
+            <div className="feature-item">
+              <div className="feature-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#79a3e2" strokeWidth="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
+              <div className="feature-text">
+                <h4 className="feature-title">项目工作台</h4>
+                <p className="feature-desc">微服务版本管理与路由配置，一站式项目生命周期管理</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 右侧 - 登录表单区 */}
+      {/* 右侧：登录表单 */}
       <div className="login-right">
         <div className="login-form-container">
           <div className="form-header">
@@ -82,80 +117,78 @@ const Login = () => {
             <p>登录灵龙AI+智能开发平台</p>
           </div>
 
-          {/* 角色选择 */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ marginBottom: 8, color: '#666', fontSize: 13 }}>请选择登录身份</div>
-            <Radio.Group
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              style={{ width: '100%' }}
+          {/* 角色选择（与注册页面一致的样式） */}
+          <div className="role-tabs">
+            <div
+              className={`role-tab ${selectedRole === 0 ? 'active' : ''}`}
+              onClick={() => setSelectedRole(0)}
             >
-              <Radio.Button
-                value={0}
-                style={{ width: '50%', textAlign: 'center' }}
-              >
-                <TeamOutlined style={{ marginRight: 6 }} />
-                普通用户
-              </Radio.Button>
-              <Radio.Button
-                value={1}
-                style={{ width: '50%', textAlign: 'center' }}
-              >
-                <CrownOutlined style={{ marginRight: 6 }} />
-                系统管理员
-              </Radio.Button>
-            </Radio.Group>
+              <UserOutlined style={{ marginRight: 6 }} />
+              普通用户
+            </div>
+            <div
+              className={`role-tab ${selectedRole === 1 ? 'active' : ''}`}
+              onClick={() => setSelectedRole(1)}
+            >
+              <LockOutlined style={{ marginRight: 6 }} />
+              系统管理员
+            </div>
           </div>
 
-          <Tabs
-            activeKey="account"
-            items={[
-              {
-                key: 'account',
-                label: '账号密码登录',
-                children: (
-                  <Form onFinish={onFinish} size="large">
-                    <Form.Item
-                      name="username"
-                      rules={[{ required: true, message: '请输入账号' }]}
-                    >
-                      <Input
-                        prefix={<UserOutlined />}
-                        placeholder="账号/手机号"
-                        size="large"
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      name="password"
-                      rules={[{ required: true, message: '请输入密码' }]}
-                    >
-                      <Input.Password
-                        prefix={<LockOutlined />}
-                        placeholder="密码"
-                        size="large"
-                      />
-                    </Form.Item>
-                    <Form.Item>
-                      <div className="form-options">
-                        <Form.Item name="remember" valuePropName="checked" noStyle>
-                          <Checkbox>记住我</Checkbox>
-                        </Form.Item>
-                        <a href="#">忘记密码？</a>
-                      </div>
-                    </Form.Item>
-                    <Form.Item>
-                      <Button type="primary" htmlType="submit" loading={loading} block size="large">
-                        立即登录
-                      </Button>
-                    </Form.Item>
-                  </Form>
-                ),
-              },
-            ]}
-          />
+          {/* 登录表单标题 */}
+          <div className="login-tab-header">
+            <span className="login-tab-title active">账号密码登录</span>
+          </div>
+
+          <Form onFinish={onFinish} size="large" className="login-form">
+            <Form.Item
+              name="username"
+              rules={[{ required: true, message: '请输入账号' }]}
+            >
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="账号/手机号"
+                size="large"
+                className="login-input"
+              />
+            </Form.Item>
+            <Form.Item
+              name="password"
+              rules={[{ required: true, message: '请输入密码' }]}
+            >
+              <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="密码"
+                size="large"
+                className="login-input"
+                iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
+              />
+            </Form.Item>
+
+            <div className="form-options">
+              <Form.Item name="remember" valuePropName="checked" noStyle>
+                <Checkbox className="remember-checkbox">记住我</Checkbox>
+              </Form.Item>
+              <a onClick={() => navigate('/forget-password')} className="forgot-password">忘记密码？</a>
+            </div>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={loading}
+                block
+                size="large"
+                className="login-button"
+              >
+                立即登录
+              </Button>
+            </Form.Item>
+          </Form>
 
           <div className="register-link">
-            还没有账号？<a onClick={() => navigate('/register')}>立即注册</a>
+            还没有账号？
+            <a onClick={() => navigate('/register')} className="register-link-highlight">立即注册</a>
           </div>
         </div>
       </div>
