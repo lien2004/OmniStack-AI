@@ -23,7 +23,7 @@ const Login = () => {
         if (userData.role !== selectedRole) {
           message.error(
             selectedRole === 1
-              ? '该账号不是系统管理员，请切换角色后重试'
+              ? '目前账号不是系统管理员，请切换角色后重试'
               : '该账号为系统管理员，请选择管理员身份登录'
           )
           return
