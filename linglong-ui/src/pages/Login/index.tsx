@@ -37,7 +37,7 @@ const Login = () => {
         message.success('登录成功')
         navigate('/chat')
       } else {
-        message.error(result.message || '登录失败')
+        message.error(result.message || '您登录失败')
       }
     } catch (error: any) {
       message.error(error.message || '登录失败')
