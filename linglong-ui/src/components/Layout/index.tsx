@@ -78,6 +78,16 @@ const NAV_GROUPS: NavGroup[] = [
     label: '智能集成',
     items: [
       {
+        key: '/codeflow',
+        icon: ThunderboltOutlined,
+        iconColor: '#f97316',
+        iconBg: 'rgba(249,115,22,0.15)',
+        title: '全AI开发',
+        subtitle: '一站式AI驱动软件开发工作流',
+        tag: 'New',
+        tagColor: '#f97316',
+      },
+      {
         key: '/agents',
         icon: RobotOutlined,
         iconColor: '#fbbf24',
@@ -135,6 +145,7 @@ const routeNameMap: Record<string, string> = {
   '/chat': 'AI 对话助手',
   '/knowledge': '知识库管理',
   '/agents': '智能体中心',
+  '/codeflow': '全AI开发',
   '/mcp': 'MCP Hub',
   '/projects': '项目中心',
   '/settings': '模型管理',

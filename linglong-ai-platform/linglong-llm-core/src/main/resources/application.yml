@@ -68,7 +68,7 @@ deepseek:
   base-url: https://api.deepseek.com
   api-key: your-api-key
   model: deepseek-v4-pro
-  thinking-enabled: true
+  thinking-enabled: false
   reasoning-effort: high
 
 # ========== 多模型路由配置 ==========

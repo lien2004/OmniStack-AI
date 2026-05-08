@@ -5,6 +5,7 @@ import ProjectList from './pages/ProjectList'
 import ProjectDetail from './pages/ProjectDetail'
 import CreateProject from './pages/CreateProject'
 import AgentCenter from './pages/AgentCenter'
+import CodeFlow from './pages/CodeFlow'
 import ResumeBuilder from './pages/ResumeBuilder'
 import ImageGeneration from './pages/ImageGeneration'
 import MCPHub from './pages/MCPHub'
@@ -27,6 +28,7 @@ function App() {
         <Route path="projects/create" element={<CreateProject />} />
         <Route path="projects/:id" element={<ProjectDetail />} />
         <Route path="agents" element={<AgentCenter />} />
+        <Route path="codeflow" element={<CodeFlow />} />
         <Route path="resume" element={<ResumeBuilder />} />
         <Route path="image-generation" element={<ImageGeneration />} />
         <Route path="mcp" element={<MCPHub />} />

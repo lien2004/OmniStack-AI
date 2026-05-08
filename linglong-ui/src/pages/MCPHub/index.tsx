@@ -3,7 +3,7 @@ import {
   Card, Tag, Button, Input, Tabs, Switch, Modal,
   Spin, Empty, Tooltip, Badge, Divider, Table,
   message as antdMessage, Typography, Space, Select, Alert,
-  Form, InputNumber, Radio, Upload,
+  Form, InputNumber, Radio, Upload, Segmented,
 } from 'antd'
 import {
   ToolOutlined, PlusOutlined, SearchOutlined, CodeOutlined,
@@ -162,6 +162,12 @@ const TOOL_TEMPLATES: Record<string, Record<string, unknown>> = {
   },
 
   // ---- DiagramTool ----
+  generate_smart_diagram: {
+    prompt: '生成一个电商系统的微服务架构图，包含用户端、网关、订单服务、支付服务、库存服务、用户服务和MySQL数据库',
+    filePath: '',
+    format: 'mermaid',
+    outputPath: '',
+  },
   generate_mermaid_diagram: {
     mermaidCode: 'graph TD\n    A[Start] --> B[Process]\n    B --> C[End]',
     outputFormat: 'svg',
@@ -339,9 +345,10 @@ function MCPHub() {
     const isPassword = param.name.toLowerCase().includes('password') || param.name.toLowerCase().includes('token')
     const isLongText = param.type === 'string' && (param.name.toLowerCase().includes('message') || param.name.toLowerCase().includes('content') || param.name.toLowerCase().includes('code'))
 
+    const labelText = param.description || param.name
     const label = (
       <Space>
-        <Text>{param.name}</Text>
+        <Text>{labelText}</Text>
         {param.required && <Tag color="red" style={{ marginLeft: 4, fontSize: 10 }}>必填</Tag>}
       </Space>
     )
@@ -354,7 +361,6 @@ function MCPHub() {
             checked={value === true}
             onChange={v => updateFormValue(param.name, v)}
           />
-          {param.description && <Text type="secondary" style={{ display: 'block', fontSize: 12, marginTop: 4 }}>{param.description}</Text>}
         </Form.Item>
       )
     }
@@ -367,9 +373,8 @@ function MCPHub() {
             value={value as number}
             onChange={v => updateFormValue(param.name, v)}
             style={{ width: '100%' }}
-            placeholder={param.description}
+            placeholder="请输入数字"
           />
-          {param.description && <Text type="secondary" style={{ display: 'block', fontSize: 12, marginTop: 4 }}>{param.description}</Text>}
         </Form.Item>
       )
     }
@@ -384,9 +389,8 @@ function MCPHub() {
             value={arrValue.map(String)}
             onChange={v => updateFormValue(param.name, v)}
             style={{ width: '100%' }}
-            placeholder={param.description || '输入后按回车添加'}
+            placeholder="输入后按回车添加"
           />
-          {param.description && <Text type="secondary" style={{ display: 'block', fontSize: 12, marginTop: 4 }}>{param.description}</Text>}
         </Form.Item>
       )
     }
@@ -404,7 +408,6 @@ function MCPHub() {
               <Option key={opt} value={opt}>{opt}</Option>
             ))}
           </Select>
-          {param.description && <Text type="secondary" style={{ display: 'block', fontSize: 12, marginTop: 4 }}>{param.description}</Text>}
         </Form.Item>
       )
     }
@@ -416,9 +419,8 @@ function MCPHub() {
           <Password
             value={String(value)}
             onChange={e => updateFormValue(param.name, e.target.value)}
-            placeholder={param.description}
+            placeholder="请输入"
           />
-          {param.description && <Text type="secondary" style={{ display: 'block', fontSize: 12, marginTop: 4 }}>{param.description}</Text>}
         </Form.Item>
       )
     }
@@ -431,9 +433,8 @@ function MCPHub() {
             value={String(value)}
             onChange={e => updateFormValue(param.name, e.target.value)}
             rows={4}
-            placeholder={param.description}
+            placeholder="请输入"
           />
-          {param.description && <Text type="secondary" style={{ display: 'block', fontSize: 12, marginTop: 4 }}>{param.description}</Text>}
         </Form.Item>
       )
     }
@@ -445,10 +446,9 @@ function MCPHub() {
           <Input
             value={String(value)}
             onChange={e => updateFormValue(param.name, e.target.value)}
-            placeholder={param.description || 'https://...'}
+            placeholder="https://..."
             prefix={<Text type="secondary" style={{ fontSize: 12 }}>URL</Text>}
           />
-          {param.description && <Text type="secondary" style={{ display: 'block', fontSize: 12, marginTop: 4 }}>{param.description}</Text>}
         </Form.Item>
       )
     }
@@ -500,7 +500,7 @@ function MCPHub() {
             <Input
               value={String(value)}
               onChange={e => updateFormValue(param.name, e.target.value)}
-              placeholder={param.description || 'E:/path/to/file'}
+              placeholder="E:/path/to/file"
               prefix={<FolderOpenOutlined style={{ color: '#bfbfbf' }} />}
               style={{ flex: 1 }}
             />
@@ -533,14 +533,13 @@ function MCPHub() {
               </Tooltip>
             )}
           </Space.Compact>
-          {param.description && <Text type="secondary" style={{ display: 'block', fontSize: 12, marginTop: 4 }}>{param.description}</Text>}
           {isFilePath && (
-            <Text type="secondary" style={{ display: 'block', fontSize: 11, marginTop: 2, color: '#999' }}>
-              支持手动输入路径，或点击「上传」按钟选择文件（PDF/Word/Excel/PPT/RTF/Markdown/TXT/XML/HTML/JSON/CSV）
+            <Text type="secondary" style={{ display: 'block', fontSize: 11, marginTop: 4, color: '#999' }}>
+              支持手动输入路径，或点击「上传」选择文件（PDF/Word/Excel/PPT/RTF/Markdown/TXT/XML/HTML/JSON/CSV）
             </Text>
           )}
           {isGitCloneDirectory && (
-            <Text type="secondary" style={{ display: 'block', fontSize: 11, marginTop: 2, color: '#999' }}>
+            <Text type="secondary" style={{ display: 'block', fontSize: 11, marginTop: 4, color: '#999' }}>
               提示：输入URL后点击「自动生成」可创建唯一目录，或手动输入自定义路径
             </Text>
           )}
@@ -554,9 +553,8 @@ function MCPHub() {
         <Input
           value={String(value)}
           onChange={e => updateFormValue(param.name, e.target.value)}
-          placeholder={param.description}
+          placeholder="请输入"
         />
-        {param.description && <Text type="secondary" style={{ display: 'block', fontSize: 12, marginTop: 4 }}>{param.description}</Text>}
       </Form.Item>
     )
   }
@@ -631,10 +629,407 @@ function MCPHub() {
       setTestLoading(false)
     }
   }
+// 美化渲染执行结果
+  const renderBeautifulResult = () => {
+    if (!testResult) return null
+    const output = testResult.output ?? ''
 
-  const copyResult = () => {
-    const text = testResult?.output ?? testResult?.error ?? ''
-    navigator.clipboard.writeText(text).then(() => antdMessage.success('已复制到剪贴板'))
+    // 尝试解析 JSON（从 output 或 meta 中获取）
+    let parsed: unknown = null
+    try { parsed = JSON.parse(output) } catch { /* ignore */ }
+
+    // 如果 output 不是 JSON，尝试从 meta 中获取结构化数据
+    const meta = testResult.meta && typeof testResult.meta === 'object' ? testResult.meta as Record<string, unknown> : null
+
+    // 1. 实时天气：包含 liveWeather 对象
+    const liveWeatherData = (parsed && typeof parsed === 'object' && parsed !== null &&
+      'liveWeather' in parsed)
+      ? parsed as Record<string, unknown>
+      : (meta && 'liveWeather' in meta)
+        ? meta
+        : null
+
+    if (liveWeatherData) {
+      const live = liveWeatherData.liveWeather as Record<string, unknown> | undefined
+      const cityName = (live?.city ?? liveWeatherData.city ?? '') as string
+      return (
+        <div style={{
+          background: 'linear-gradient(135deg, #e6f7ff, #f0f5ff)',
+          borderRadius: 16, padding: '24px 28px', border: '1px solid #d6e4ff',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <Text strong style={{ fontSize: 18, display: 'block' }}>🌍 {cityName}</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>实时天气 · {String(live?.reportTime ?? '')}</Text>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <Text style={{ fontSize: 36, fontWeight: 700, lineHeight: 1.2 }}>
+                {String(live?.temperature ?? '-')}
+              </Text>
+              <Text style={{ fontSize: 14, display: 'block' }}>{String(live?.weather ?? '')}</Text>
+            </div>
+          </div>
+          <Divider style={{ margin: '16px 0', borderColor: '#d6e4ff' }} />
+          <div style={{ display: 'flex', gap: 24 }}>
+            <div>
+              <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>湿度</Text>
+              <Text strong style={{ fontSize: 14 }}>{String(live?.humidity ?? '-')}</Text>
+            </div>
+            <div>
+              <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>风向</Text>
+              <Text strong style={{ fontSize: 14 }}>{String(live?.windDirection ?? '-')}</Text>
+            </div>
+            <div>
+              <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>风力</Text>
+              <Text strong style={{ fontSize: 14 }}>{String(live?.windPower ?? '-')}</Text>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // 2. 批量天气查询：包含 results 数组
+    const batchWeatherData = (parsed && typeof parsed === 'object' && parsed !== null &&
+      'results' in parsed && Array.isArray((parsed as Record<string, unknown>).results))
+      ? parsed as Record<string, unknown>
+      : (meta && 'results' in meta && Array.isArray(meta.results))
+        ? meta
+        : null
+
+    if (batchWeatherData) {
+      const results = batchWeatherData.results as Array<Record<string, unknown>>
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {results.map((item, idx) => (
+            <div key={idx} style={{
+              background: 'linear-gradient(135deg, #e6f7ff, #f0f5ff)',
+              borderRadius: 12, padding: '16px 20px', border: '1px solid #d6e4ff',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <div>
+                <Text strong style={{ fontSize: 15 }}>🌍 {String(item.city ?? item.name ?? `城市${idx+1}`)}</Text>
+                <Text style={{ fontSize: 13, display: 'block', marginTop: 2 }}>{String(item.weather ?? '')}</Text>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <Text style={{ fontSize: 24, fontWeight: 600 }}>{String(item.temperature ?? '-')}</Text>
+                <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>
+                  {String(item.windDirection ?? '')} · 湿度 {String(item.humidity ?? '-')}
+                </Text>
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    // 3. 天气预报：包含 forecast 数组（从 output 或 meta 中）
+    const weatherData = (parsed && typeof parsed === 'object' && parsed !== null &&
+      'forecast' in parsed && Array.isArray((parsed as Record<string, unknown>).forecast))
+      ? parsed as Record<string, unknown>
+      : (meta && 'forecast' in meta && Array.isArray(meta.forecast))
+        ? meta
+        : null
+
+    if (weatherData) {
+      const forecast = weatherData.forecast as Array<Record<string, unknown>>
+      const city = weatherData.city as string | undefined
+      const cityName = (weatherData.cityName ?? city ?? '') as string
+      return (
+        <div>
+          {cityName && (
+            <div style={{ marginBottom: 16 }}>
+              <Text strong style={{ fontSize: 18 }}>🌍 {cityName}</Text>
+              <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
+                未来{forecast.length}天预报
+              </Text>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }}>
+            {forecast.map((day, idx) => {
+              const dayWeather = String(day.dayWeather ?? day.weather ?? '-')
+              const nightWeather = String(day.nightWeather ?? '-')
+              const dayTemp = String(day.dayTemp ?? day.high ?? '-')
+              const nightTemp = String(day.nightTemp ?? day.low ?? '-')
+              const dayWind = String(day.dayWind ?? day.windDirection ?? '-')
+              const nightWind = String(day.nightWind ?? '-')
+              const dayPower = String(day.dayPower ?? day.windPower ?? '-')
+              const nightPower = String(day.nightPower ?? '-')
+              const week = String(day.week ?? '')
+              const date = String(day.date ?? '')
+
+              const getWeatherIcon = (w: string) => {
+                if (w.includes('雨')) return '🌧️'
+                if (w.includes('雪')) return '❄️'
+                if (w.includes('云') || w.includes('阴')) return '☁️'
+                if (w.includes('晴')) return '☀️'
+                return '🌤️'
+              }
+
+              return (
+                <div key={idx} style={{
+                  minWidth: 180, padding: '16px 18px', borderRadius: 14,
+                  background: 'linear-gradient(135deg, #e6f7ff, #f0f5ff)',
+                  border: '1px solid #d6e4ff', flexShrink: 0,
+                }}>
+                  <Text strong style={{ fontSize: 14, display: 'block', marginBottom: 2 }}>
+                    {week || `第${idx+1}天`}
+                  </Text>
+                  <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 10 }}>{date}</Text>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <Text style={{ fontSize: 32 }}>{getWeatherIcon(dayWeather)}</Text>
+                    <div>
+                      <Text style={{ fontSize: 13, display: 'block' }}>白天 {dayWeather}</Text>
+                      <Text style={{ fontSize: 13, display: 'block' }}>夜间 {nightWeather}</Text>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>最高</Text>
+                      <Text strong style={{ fontSize: 16, color: '#fa541c' }}>{dayTemp}</Text>
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>最低</Text>
+                      <Text strong style={{ fontSize: 16, color: '#1677ff' }}>{nightTemp}</Text>
+                    </div>
+                  </div>
+
+                  <Divider style={{ margin: '8px 0', borderColor: '#d6e4ff' }} />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div>
+                      <Text type="secondary" style={{ fontSize: 10, display: 'block' }}>白天风向</Text>
+                      <Text style={{ fontSize: 11 }}>{dayWind} {dayPower}</Text>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <Text type="secondary" style={{ fontSize: 10, display: 'block' }}>夜间风向</Text>
+                      <Text style={{ fontSize: 11 }}>{nightWind} {nightPower}</Text>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
+
+    // 2. 文件生成结果：包含 filePath 或 savedPath（从 output 或 meta 中）
+    const fileData = (parsed && typeof parsed === 'object' && parsed !== null &&
+      ('filePath' in parsed || 'savedPath' in parsed))
+      ? parsed as Record<string, unknown>
+      : (meta && ('filePath' in meta || 'savedPath' in meta))
+        ? meta
+        : null
+
+    if (fileData) {
+      const filePath = (fileData.filePath ?? fileData.savedPath) as string
+      return (
+        <div style={{
+          background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 10,
+          padding: '16px 20px',
+        }}>
+          <Space>
+            <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 20 }} />
+            <div>
+              <Text strong style={{ fontSize: 14, display: 'block' }}>文件已成功生成</Text>
+              <Text code style={{ fontSize: 12 }}>{filePath}</Text>
+            </div>
+          </Space>
+        </div>
+      )
+    }
+
+    // 3. 数据库查询结果：包含 rows / columns / records 字段
+    const dbData = (parsed && typeof parsed === 'object' && parsed !== null &&
+      ('rows' in parsed || 'records' in parsed || 'data' in parsed))
+      ? parsed as Record<string, unknown>
+      : (meta && ('rows' in meta || 'records' in meta || 'data' in meta))
+        ? meta
+        : null
+
+    if (dbData) {
+      const rows = (dbData.rows ?? dbData.records ?? dbData.data) as Array<Record<string, unknown>> | undefined
+      const columns = (dbData.columns as string[] | undefined) ?? (rows && rows.length > 0 ? Object.keys(rows[0]) : [])
+      if (rows && rows.length > 0) {
+        return (
+          <div style={{ border: '1px solid #f0f0f0', borderRadius: 10, overflow: 'hidden' }}>
+            <Table
+              size="small"
+              dataSource={rows.map((r, i) => ({ ...r, key: i }))}
+              columns={columns.map(c => ({
+                title: c,
+                dataIndex: c,
+                key: c,
+                ellipsis: true,
+                render: (v: unknown) => <Text style={{ fontSize: 12 }}>{typeof v === 'object' ? JSON.stringify(v) : String(v ?? '-')}</Text>,
+              }))}
+              pagination={{ pageSize: 8, size: 'small' }}
+              scroll={{ x: 'max-content' }}
+            />
+          </div>
+        )
+      }
+    }
+
+    // 4. Docker 容器/镜像列表：识别 status / image / container 相关字段
+    if (parsed && Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
+      const first = parsed[0] as Record<string, unknown>
+      const isDockerLike = 'containerId' in first || 'imageId' in first || 'status' in first || 'ports' in first || 'image' in first
+      if (isDockerLike) {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {parsed.map((item, idx) => {
+              const it = item as Record<string, unknown>
+              const status = String(it.status ?? it.state ?? 'unknown')
+              const isRunning = status.toLowerCase().includes('running') || status.toLowerCase().includes('up')
+              const name = String(it.name ?? it.containerName ?? it.image ?? it.imageName ?? it.repository ?? `项目 ${idx + 1}`)
+              return (
+                <div key={idx} style={{
+                  background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 10,
+                  padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
+                }}>
+                  <div style={{
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: isRunning ? '#52c41a' : '#bfbfbf',
+                    flexShrink: 0,
+                  }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <Text strong style={{ fontSize: 13, display: 'block' }}>{name}</Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>{status}</Text>
+                  </div>
+                  {Object.entries(it).filter(([k]) => !['name','containerName','image','imageName','repository','status','state'].includes(k)).map(([k, v]) => (
+                    <Text key={k} type="secondary" style={{ fontSize: 11, flexShrink: 0 }}>
+                      {k}: {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+                    </Text>
+                  ))}
+                </div>
+              )
+            })}
+          </div>
+        )
+      }
+    }
+
+    // 5. Git 分支/提交列表：识别 branch / commit 相关字段
+    if (parsed && Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
+      const first = parsed[0] as Record<string, unknown>
+      const isGitLike = 'branch' in first || 'branchName' in first || 'commit' in first || 'hash' in first || 'message' in first
+      if (isGitLike) {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {parsed.map((item, idx) => {
+              const it = item as Record<string, unknown>
+              const name = String(it.branch ?? it.branchName ?? it.name ?? it.commit ?? `项目 ${idx + 1}`)
+              const msg = String(it.message ?? it.commitMessage ?? '')
+              const author = String(it.author ?? it.committer ?? '')
+              return (
+                <div key={idx} style={{
+                  background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 10,
+                  padding: '12px 16px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: msg ? 6 : 0 }}>
+                    <BranchesOutlined style={{ color: '#fa8c16', fontSize: 14 }} />
+                    <Text strong style={{ fontSize: 13 }}>{name}</Text>
+                    {author && <Text type="secondary" style={{ fontSize: 11 }}>by {author}</Text>}
+                  </div>
+                  {msg && <Text style={{ fontSize: 12, color: '#595959' }}>{msg}</Text>}
+                </div>
+              )
+            })}
+          </div>
+        )
+      }
+    }
+
+    // 6. 通用对象或数组：规整的数组用 Table，不规则用卡片
+    if (parsed && (Array.isArray(parsed) || (typeof parsed === 'object' && parsed !== null))) {
+      if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
+        const keys = Object.keys(parsed[0] as Record<string, unknown>)
+        // 字段规整且数量适中，用表格展示
+        if (keys.length <= 8 && parsed.length >= 2) {
+          return (
+            <div style={{ border: '1px solid #f0f0f0', borderRadius: 10, overflow: 'hidden' }}>
+              <Table
+                size="small"
+                dataSource={parsed.map((r, i) => ({ ...(r as Record<string, unknown>), key: i }))}
+                columns={keys.map(c => ({
+                  title: c,
+                  dataIndex: c,
+                  key: c,
+                  ellipsis: true,
+                  render: (v: unknown) => <Text style={{ fontSize: 12 }}>{typeof v === 'object' ? JSON.stringify(v) : String(v ?? '-')}</Text>,
+                }))}
+                pagination={{ pageSize: 8, size: 'small' }}
+                scroll={{ x: 'max-content' }}
+              />
+            </div>
+          )
+        }
+        // 不规则用卡片列表
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {parsed.map((item, idx) => (
+              <div key={idx} style={{
+                background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8,
+                padding: '10px 14px',
+              }}>
+                {Object.entries(item as Record<string, unknown>).map(([k, v]) => (
+                  <div key={k} style={{ display: 'flex', marginBottom: 4 }}>
+                    <Text type="secondary" style={{ fontSize: 12, width: 100, flexShrink: 0 }}>{k}</Text>
+                    <Text style={{ fontSize: 12, wordBreak: 'break-all' }}>{typeof v === 'object' ? JSON.stringify(v) : String(v)}</Text>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )
+      }
+      // 普通对象：键值对展示
+      if (!Array.isArray(parsed)) {
+        return (
+          <div style={{
+            background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8,
+            padding: '12px 16px',
+          }}>
+            {Object.entries(parsed as Record<string, unknown>).map(([k, v]) => (
+              <div key={k} style={{ display: 'flex', marginBottom: 6, alignItems: 'flex-start' }}>
+                <Text type="secondary" style={{ fontSize: 12, width: 120, flexShrink: 0 }}>{k}</Text>
+                <Text style={{ fontSize: 12, wordBreak: 'break-all' }}>
+                  {typeof v === 'object' ? JSON.stringify(v, null, 2) : String(v)}
+                </Text>
+              </div>
+            ))}
+          </div>
+        )
+      }
+    }
+
+    // 4. 代码/文本：美化展示
+    const isCodeLike = output.includes('\n') || output.includes('{') || output.includes('<') || output.includes('graph') || output.includes('@start')
+    if (isCodeLike) {
+      return (
+        <pre style={{
+          background: '#1e1e1e', color: '#d4d4d4', borderRadius: 8,
+          padding: '14px 16px', fontSize: 12, lineHeight: 1.6,
+          overflow: 'auto', maxHeight: 360, margin: 0,
+          fontFamily: '"Fira Code", "Consolas", monospace',
+        }}>
+          {output}
+        </pre>
+      )
+    }
+
+    // 5. 纯文本
+    return (
+      <div style={{
+        background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 8,
+        padding: '12px 16px', fontSize: 13, lineHeight: 1.7, whiteSpace: 'pre-wrap',
+      }}>
+        {output || '(无输出)'}
+      </div>
+    )
   }
 
   // -------- 详情弹窗 --------
@@ -660,37 +1055,24 @@ function MCPHub() {
       <Card
         key={group.groupName}
         hoverable
-        style={{ borderRadius: 12, border: '1px solid #f0f0f0', opacity: enabled ? 1 : 0.55 }}
-        bodyStyle={{ padding: '20px 20px 12px' }}
-        actions={[
-          <Button
-            type="link" icon={<PlayCircleOutlined />}
-            disabled={!enabled || group.tools.length === 0}
-            onClick={() => openTestModal(group)}
-            key="test"
-          >
-            测试
-          </Button>,
-          <Button
-            type="link" icon={<InfoCircleOutlined />}
-            onClick={() => openDetailModal(group)}
-            key="detail"
-          >
-            详情
-          </Button>,
-        ]}
+        style={{
+          borderRadius: 16, border: '1px solid #f0f0f0',
+          opacity: enabled ? 1 : 0.55,
+          overflow: 'hidden',
+        }}
+        bodyStyle={{ padding: '20px 20px 16px' }}
       >
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 12 }}>
           <div style={{
-            width: 48, height: 48, borderRadius: 10,
-            background: `${catCfg.color}18`,
+            width: 52, height: 52, borderRadius: 12,
+            background: `${catCfg.color}15`,
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
-            <ToolOutlined style={{ fontSize: 22, color: catCfg.color }} />
+            {catCfg.icon}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text strong style={{ fontSize: 15 }}>{group.groupName}</Text>
+              <Text strong style={{ fontSize: 16 }}>{group.groupName}</Text>
               <Switch
                 size="small" checked={enabled}
                 onChange={v => setEnabledMap(prev => ({ ...prev, [group.groupName]: v }))}
@@ -698,18 +1080,38 @@ function MCPHub() {
             </div>
             <Paragraph
               ellipsis={{ rows: 2 }}
-              style={{ color: '#595959', marginTop: 4, marginBottom: 0, fontSize: 13 }}
+              style={{ color: '#8c8c8c', marginTop: 6, marginBottom: 0, fontSize: 13, lineHeight: 1.6 }}
             >
               {group.description}
             </Paragraph>
           </div>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-          <Tag color={catCfg.tagColor} style={{ borderRadius: 6 }}>{catCfg.label}</Tag>
-          <Tag style={{ borderRadius: 6 }}>使用: {usageCount}次</Tag>
-          {group.tools.length > 0 && (
-            <Tag color="geekblue" style={{ borderRadius: 6 }}>{group.tools.length} 个方法</Tag>
-          )}
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+          <Tag color={catCfg.tagColor} style={{ borderRadius: 6, fontSize: 12 }}>{catCfg.label}</Tag>
+          <Tag style={{ borderRadius: 6, fontSize: 12 }}>使用 {usageCount} 次</Tag>
+        </div>
+
+        {/* 操作按钮 */}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Button
+            type="primary"
+            icon={<PlayCircleOutlined />}
+            disabled={!enabled || group.tools.length === 0}
+            onClick={() => openTestModal(group)}
+            style={{ flex: 1, borderRadius: 8, fontSize: 13 }}
+            size="middle"
+          >
+            立即体验
+          </Button>
+          <Button
+            icon={<InfoCircleOutlined />}
+            onClick={() => openDetailModal(group)}
+            style={{ flex: 1, borderRadius: 8, fontSize: 13 }}
+            size="middle"
+          >
+            查看详情
+          </Button>
         </div>
       </Card>
     )
@@ -773,21 +1175,13 @@ function MCPHub() {
         )}
       </Card>
 
-      {/* ======== 测试弹窗 ======== */}
+      {/* ======== 体验弹窗 ======== */}
       <Modal
-        title={
-          <Space>
-            <ThunderboltOutlined style={{ color: '#1677ff' }} />
-            <span>执行工具：<Text strong>{testGroup?.groupName}</Text></span>
-          </Space>
-        }
+        title={null}
         open={testVisible}
         onCancel={() => { setTestVisible(false); setTestResult(null) }}
         footer={[
           <Button key="cancel" onClick={() => setTestVisible(false)}>关闭</Button>,
-          <Tooltip key="copy" title="复制结果">
-            <Button icon={<CopyOutlined />} onClick={copyResult} disabled={!testResult}>复制结果</Button>
-          </Tooltip>,
           <Button
             key="run" type="primary" icon={<PlayCircleOutlined />}
             loading={testLoading} onClick={handleTest}
@@ -796,36 +1190,55 @@ function MCPHub() {
             执行
           </Button>,
         ]}
-        width={720}
+        width={860}
+        bodyStyle={{ padding: '24px 28px' }}
       >
         {testGroup && testGroup.tools.length > 0 ? (
           <>
-            {/* 选择工具方法 */}
-            <div style={{ marginBottom: 14 }}>
-              <Text type="secondary" style={{ display: 'block', marginBottom: 6, fontSize: 13 }}>
-                选择方法
-              </Text>
-              <Select
-                value={selectedTool}
-                onChange={selectToolAndTemplate}
-                style={{ width: '100%' }}
-                optionLabelProp="label"
-              >
-                {testGroup.tools.map(t => (
-                  <Option key={t.name} value={t.name} label={t.name}>
-                    <Space>
-                      <Text code style={{ fontSize: 12 }}>{t.name}</Text>
-                      <Text type="secondary" style={{ fontSize: 12 }}>{t.description}</Text>
-                    </Space>
-                  </Option>
-                ))}
-              </Select>
+            {/* 欢迎区域 */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12,
+                  background: `${CATEGORY_CONFIG[testGroup.category]?.color ?? '#1677ff'}15`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {CATEGORY_CONFIG[testGroup.category]?.icon ?? <ThunderboltOutlined />}
+                </div>
+                <div>
+                  <Title level={4} style={{ margin: 0, fontSize: 20 }}>
+                    {testGroup.description || testGroup.groupName}
+                  </Title>
+                  <Text type="secondary" style={{ fontSize: 13 }}>
+                    {testGroup.groupName}
+                  </Text>
+                </div>
+              </div>
+              <Paragraph style={{ color: '#8c8c8c', margin: 0, fontSize: 13, lineHeight: 1.7 }}>
+                {testGroup.tools.find(t => t.name === selectedTool)?.description ?? testGroup.description}
+              </Paragraph>
             </div>
 
+            {/* 选择工具方法 - 多方法时显示中文描述的 Segmented，单方法隐藏 */}
+            {testGroup.tools.length > 1 && (
+              <div style={{ marginBottom: 20 }}>
+                <Segmented
+                  value={selectedTool}
+                  onChange={(v) => selectToolAndTemplate(v as string)}
+                  options={testGroup.tools.map(t => ({
+                    label: t.description || t.name,
+                    value: t.name,
+                  }))}
+                  block
+                  size="large"
+                />
+              </div>
+            )}
+
             {/* 参数编辑区域 */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <Text type="secondary" style={{ fontSize: 13 }}>请求参数</Text>
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <Text strong style={{ fontSize: 14 }}>输入参数</Text>
                 <Space>
                   <Radio.Group
                     value={formMode ? 'form' : 'json'}
@@ -856,11 +1269,11 @@ function MCPHub() {
               {/* 表单模式 */}
               {formMode ? (
                 <div style={{
-                  border: '1px solid #d9d9d9',
-                  borderRadius: 8,
-                  padding: '12px 16px',
+                  border: '1px solid #f0f0f0',
+                  borderRadius: 12,
+                  padding: '16px 20px',
                   background: '#fafafa',
-                  maxHeight: 320,
+                  maxHeight: 360,
                   overflow: 'auto',
                 }}>
                   {getCurrentToolParams().length > 0 ? (
@@ -868,9 +1281,9 @@ function MCPHub() {
                   ) : (
                     <Alert
                       type="info"
-                      message="此方法无需参数"
+                      message="此功能无需输入参数，直接点击执行即可"
                       showIcon
-                      style={{ marginBottom: 0 }}
+                      style={{ marginBottom: 0, borderRadius: 8 }}
                     />
                   )}
                 </div>
@@ -880,7 +1293,6 @@ function MCPHub() {
                   value={jsonParam}
                   onChange={e => {
                     handleJsonChange(e.target.value)
-                    // JSON 编辑后同步到表单
                     const parsed = tryParseJson(e.target.value)
                     if (parsed.ok) {
                       setFormValues(parsed.value as Record<string, unknown>)
@@ -891,6 +1303,7 @@ function MCPHub() {
                     fontFamily: 'monospace', fontSize: 13,
                     borderColor: jsonError ? '#ff4d4f' : undefined,
                     background: '#fafafa',
+                    borderRadius: 12,
                   }}
                   spellCheck={false}
                 />
@@ -923,32 +1336,14 @@ function MCPHub() {
                   )}
                 </div>
 
-                {testResult.success ? (
-                  <TextArea
-                    readOnly
-                    value={testResult.output ?? '(无输出)'}
-                    rows={10}
-                    style={{
-                      fontFamily: 'monospace', fontSize: 12,
-                      background: '#f6ffed', borderColor: '#b7eb8f',
-                    }}
-                  />
-                ) : (
+                {testResult.success ? renderBeautifulResult() : (
                   <Alert
                     type="error"
-                    message="错误信息"
-                    description={<Text code style={{ fontSize: 12 }}>{testResult.error}</Text>}
+                    message="执行出错"
+                    description={<Text style={{ fontSize: 13 }}>{testResult.error}</Text>}
                     showIcon
+                    style={{ borderRadius: 10 }}
                   />
-                )}
-
-                {testResult.meta && (
-                  <div style={{ marginTop: 8 }}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>元数据：</Text>
-                    <Text code style={{ fontSize: 11, wordBreak: 'break-all' }}>
-                      {JSON.stringify(testResult.meta)}
-                    </Text>
-                  </div>
                 )}
 
                 {/* SVG图片预览区域 */}
@@ -972,17 +1367,52 @@ function MCPHub() {
                         下载SVG
                       </Button>
                     </div>
-                    <div 
-                      style={{ 
-                        border: '1px solid #d9d9d9', 
-                        borderRadius: 8, 
-                        padding: 16, 
+                    <div
+                      style={{
+                        border: '1px solid #d9d9d9',
+                        borderRadius: 8,
+                        padding: 16,
                         background: '#fafafa',
                         maxHeight: 400,
                         overflow: 'auto',
                       }}
                       dangerouslySetInnerHTML={{ __html: testResult.svgContent }}
                     />
+                  </div>
+                )}
+
+                {/* draw.io 图表结果 */}
+                {testResult.meta && typeof testResult.meta === 'object' &&
+                  (testResult.meta as Record<string, unknown>).format === 'drawio' &&
+                  (testResult.meta as Record<string, unknown>).drawioUrl && (
+                  <div style={{ marginTop: 16 }}>
+                    <Divider style={{ margin: '12px 0' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <Text strong style={{ fontSize: 13 }}>🎨 draw.io 图表</Text>
+                    </div>
+                    <div style={{ background: '#f0f5ff', borderRadius: 8, padding: '12px 16px', border: '1px solid #d6e4ff' }}>
+                      <Text style={{ fontSize: 13, display: 'block', marginBottom: 10 }}>
+                        图表已生成，点击下方按钮在 draw.io 在线编辑器中打开并编辑：
+                      </Text>
+                      <Space>
+                        <Button type="primary" onClick={() => window.open((testResult.meta as Record<string, unknown>).drawioUrl as string, '_blank')}>
+                          在 draw.io 中打开编辑
+                        </Button>
+                        {((testResult.meta as Record<string, unknown>).drawioXml as string) && (
+                          <Button size="small" icon={<CopyOutlined />} onClick={() => {
+                            const xml = (testResult.meta as Record<string, unknown>).drawioXml as string
+                            navigator.clipboard.writeText(xml).then(() => antdMessage.success('已复制XML到剪贴板'))
+                          }}>
+                            复制 XML
+                          </Button>
+                        )}
+                      </Space>
+                      {((testResult.meta as Record<string, unknown>).savedPath as string) && (
+                        <Text type="secondary" style={{ fontSize: 11, marginTop: 8, display: 'block' }}>
+                          服务器已保存：{(testResult.meta as Record<string, unknown>).savedPath as string}
+                        </Text>
+                      )}
+                    </div>
                   </div>
                 )}
               </>
@@ -1052,7 +1482,7 @@ function MCPHub() {
                         }, 150)
                       }}
                     >
-                      立即测试
+                      立即体验
                     </Button>
                   </div>
                   <Text type="secondary" style={{ fontSize: 13 }}>{tool.description}</Text>

@@ -23,7 +23,7 @@ const Login = () => {
         if (userData.role !== selectedRole) {
           message.error(
             selectedRole === 1
-              ? '目前账号不是系统管理员，请切换角色后重试'
+              ? '该账号不是系统管理员，请切换角色后重试'
               : '该账号为系统管理员，请选择管理员身份登录'
           )
           return
@@ -37,7 +37,7 @@ const Login = () => {
         message.success('登录成功')
         navigate('/chat')
       } else {
-        message.error(result.message || '您登录失败')
+        message.error(result.message || '登录失败')
       }
     } catch (error: any) {
       message.error(error.message || '登录失败')

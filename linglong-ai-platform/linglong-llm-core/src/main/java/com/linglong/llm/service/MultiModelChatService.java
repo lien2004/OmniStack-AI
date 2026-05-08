@@ -12,6 +12,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,13 +84,33 @@ public class MultiModelChatService {
      * @param maxTokens   最大 Token 数
      * @return AI 回复内容
      */
+    /**
+     * 同步多轮对话（向后兼容重载，思考/搜索默认关闭）
+     */
     public String chat(List<Map<String, Object>> messages, String model,
                        Double temperature, Integer maxTokens) {
+        return chat(messages, model, temperature, maxTokens, false, false);
+    }
+
+    /**
+     * 同步多轮对话（支持深度思考和联网搜索）
+     *
+     * @param messages          消息列表 [{role, content}, ...]
+     * @param model             模型名称
+     * @param temperature       温度参数
+     * @param maxTokens         最大 Token 数
+     * @param enableThinking    是否开启深度思考模式
+     * @param enableWebSearch   是否开启联网搜索
+     * @return AI 回复内容
+     */
+    public String chat(List<Map<String, Object>> messages, String model,
+                       Double temperature, Integer maxTokens,
+                       boolean enableThinking, boolean enableWebSearch) {
         String url    = resolveUrl(model);
         String apiKey = resolveApiKey(model);
         String effectiveModel = resolveModel(model);
 
-        Map<String, Object> body = buildRequestBody(messages, effectiveModel, temperature, maxTokens, false);
+        Map<String, Object> body = buildRequestBody(messages, effectiveModel, temperature, maxTokens, false, enableThinking, enableWebSearch);
         try {
             String bodyStr = objectMapper.writeValueAsString(body);
             HttpRequest req = buildHttpRequest(url, apiKey, bodyStr);
@@ -121,9 +142,31 @@ public class MultiModelChatService {
      * @param emitter     SseEmitter 实例
      * @param onComplete  流式完成后的回调（携带完整内容）
      */
+    /**
+     * 异步流式对话（向后兼容重载，思考/搜索默认关闭）
+     */
     public void streamChat(List<Map<String, Object>> messages, String model,
                            Double temperature, Integer maxTokens,
                            SseEmitter emitter, java.util.function.Consumer<String> onComplete) {
+        streamChat(messages, model, temperature, maxTokens, emitter, onComplete, false, false);
+    }
+
+    /**
+     * 异步流式对话（支持深度思考和联网搜索），通过 SseEmitter 向前端推送内容块
+     *
+     * @param messages          消息列表
+     * @param model             模型名称
+     * @param temperature       温度参数
+     * @param maxTokens         最大 Token 数
+     * @param emitter           SseEmitter 实例
+     * @param onComplete        流式完成后的回调（携带完整内容）
+     * @param enableThinking    是否开启深度思考模式
+     * @param enableWebSearch   是否开启联网搜索
+     */
+    public void streamChat(List<Map<String, Object>> messages, String model,
+                           Double temperature, Integer maxTokens,
+                           SseEmitter emitter, java.util.function.Consumer<String> onComplete,
+                           boolean enableThinking, boolean enableWebSearch) {
         String url    = resolveUrl(model);
         String apiKey = resolveApiKey(model);
         String effectiveModel = resolveModel(model);
@@ -131,7 +174,7 @@ public class MultiModelChatService {
         streamExecutor.submit(() -> {
             StringBuilder fullContent = new StringBuilder();
             try {
-                Map<String, Object> body = buildRequestBody(messages, effectiveModel, temperature, maxTokens, true);
+                Map<String, Object> body = buildRequestBody(messages, effectiveModel, temperature, maxTokens, true, enableThinking, enableWebSearch);
                 String bodyStr = objectMapper.writeValueAsString(body);
                 HttpRequest req = buildHttpRequest(url, apiKey, bodyStr);
 
@@ -153,7 +196,7 @@ public class MultiModelChatService {
                                 if (delta != null) {
                                     // 优先取 content 字段
                                     String content = (String) delta.get("content");
-                                    // DeepSeek 思考模式：content 可能为空，取 reasoning_content
+                                    // 深度思考模式：content 可能为空，取 reasoning_content
                                     if (content == null || content.isEmpty()) {
                                         content = (String) delta.get("reasoning_content");
                                     }
@@ -221,7 +264,8 @@ public class MultiModelChatService {
 
     private Map<String, Object> buildRequestBody(List<Map<String, Object>> messages,
                                                   String model, Double temperature,
-                                                  Integer maxTokens, boolean stream) {
+                                                  Integer maxTokens, boolean stream,
+                                                  boolean enableThinking, boolean enableWebSearch) {
         Map<String, Object> body = new HashMap<>();
         body.put("model", model);
         body.put("messages", messages);
@@ -229,13 +273,43 @@ public class MultiModelChatService {
         if (temperature != null) body.put("temperature", temperature);
         if (maxTokens != null)   body.put("max_tokens", maxTokens);
 
-        // DeepSeek 思考模式：为 deepseek-v4-pro 等推理模型注入 thinking 和 reasoning_effort 参数
-        if (isDeepSeekModel(model) && deepseekThinkingEnabled) {
+        // ── 深度思考模式 ──────────────────────────────────────────────────
+        if (enableThinking) {
+            if (isZhipuModel(model)) {
+                // 智谱AI GLM-4.5+/GLM-5 系列支持深度思考
+                Map<String, Object> thinking = new HashMap<>();
+                thinking.put("type", "enabled");
+                body.put("thinking", thinking);
+                log.debug("智谱AI 深度思考已开启，模型={}", model);
+            } else if (isDeepSeekModel(model) && model.toLowerCase().contains("pro")) {
+                // DeepSeek V4-Pro 支持思考模式
+                Map<String, Object> thinking = new HashMap<>();
+                thinking.put("type", "enabled");
+                body.put("thinking", thinking);
+                body.put("reasoning_effort", deepseekReasoningEffort);
+                log.debug("DeepSeek 深度思考已开启: reasoning_effort={}", deepseekReasoningEffort);
+            }
+        } else if (isDeepSeekModel(model) && deepseekThinkingEnabled) {
+            // 应用服务端默认开启配置（如果前端未主动控制）
             Map<String, Object> thinking = new HashMap<>();
             thinking.put("type", "enabled");
             body.put("thinking", thinking);
             body.put("reasoning_effort", deepseekReasoningEffort);
-            log.debug("DeepSeek 思考模式已开启: reasoning_effort={}", deepseekReasoningEffort);
+        }
+
+        // ── 联网搜索 ──────────────────────────────────────────────────────
+        if (enableWebSearch && isZhipuModel(model)) {
+            Map<String, Object> webSearch = new HashMap<>();
+            webSearch.put("enable", true);
+            webSearch.put("search_result", true);
+            Map<String, Object> tool = new HashMap<>();
+            tool.put("type", "web_search");
+            tool.put("web_search", webSearch);
+            List<Map<String, Object>> tools = new ArrayList<>();
+            tools.add(tool);
+            body.put("tools", tools);
+            body.put("tool_choice", "auto");
+            log.debug("智谱AI 联网搜索已开启，模型={}", model);
         }
 
         return body;

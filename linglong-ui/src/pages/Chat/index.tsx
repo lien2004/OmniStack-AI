@@ -9,7 +9,7 @@ import {
   CopyOutlined, LikeOutlined, DislikeOutlined,
   ApiOutlined, DatabaseOutlined, CheckOutlined, DeleteOutlined,
   PaperClipOutlined, FileTextOutlined, CloseCircleOutlined, DownloadOutlined,
-  SearchOutlined,
+  SearchOutlined, BulbOutlined, GlobalOutlined,
 } from '@ant-design/icons';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
@@ -210,7 +210,18 @@ const ChatPage: React.FC = () => {
   const [uploadedFile, setUploadedFile]   = useState<File | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
   const [useRag, setUseRag]               = useState(false);
+  const [enableThinking, setEnableThinking] = useState(false);
+  const [enableWebSearch, setEnableWebSearch] = useState(false);
   const [streamingMsgId, setStreamingMsgId] = useState<string | null>(null);
+
+  // 判断当前模型是否支持深度思考
+  const supportsThinking = () => {
+    const m = selectedModel.toLowerCase();
+    return m.startsWith('glm-4.5') || m.startsWith('glm-4.6') || m.startsWith('glm-4.7') ||
+           m.startsWith('glm-5') || m === 'deepseek-v4-pro';
+  };
+  // 判断当前模型是否支持联网搜索
+  const supportsWebSearch = () => selectedModel.toLowerCase().startsWith('glm');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef   = useRef<HTMLInputElement>(null);
@@ -412,7 +423,9 @@ const ChatPage: React.FC = () => {
       // ── 普通流式对话 ────────────────────────────────────────────────
       await readStream(
         '/ai/conversation/stream',
-        { chatId, message: userMsg.content, model: selectedModel, useRag, temperature: 0.7, maxTokens: 4000 },
+        { chatId, message: userMsg.content, model: selectedModel, useRag, temperature: 0.7, maxTokens: 4000,
+          enableThinking: enableThinking && supportsThinking(),
+          enableWebSearch: enableWebSearch && supportsWebSearch() },
         appendChunk, onDone, onError
       );
     }
@@ -526,6 +539,37 @@ const ChatPage: React.FC = () => {
               </div>
             </Tooltip>
 
+            {/* 深度思考开关 */}
+            <Tooltip title={supportsThinking() ? '开启深度思考模式（GLM-4.5+/GLM-5系列/DeepSeek-V4-Pro）' : '当前模型不支持深度思考'}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 8,
+                opacity: supportsThinking() ? 1 : 0.4 }}>
+                <BulbOutlined style={{ color: enableThinking && supportsThinking() ? '#722ed1' : '#8c8c8c' }} />
+                <span style={{ fontSize: 12, color: enableThinking && supportsThinking() ? '#722ed1' : '#8c8c8c' }}>深度思考</span>
+                <Switch
+                  size="small"
+                  checked={enableThinking && supportsThinking()}
+                  disabled={!supportsThinking()}
+                  onChange={setEnableThinking}
+                  style={{ '--ant-switch-color': '#722ed1' } as any}
+                />
+              </div>
+            </Tooltip>
+
+            {/* 联网搜索开关 */}
+            <Tooltip title={supportsWebSearch() ? '开启联网搜索（仅支持智谱 GLM 系列）' : '当前模型不支持联网搜索'}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 8,
+                opacity: supportsWebSearch() ? 1 : 0.4 }}>
+                <GlobalOutlined style={{ color: enableWebSearch && supportsWebSearch() ? '#13c2c2' : '#8c8c8c' }} />
+                <span style={{ fontSize: 12, color: enableWebSearch && supportsWebSearch() ? '#13c2c2' : '#8c8c8c' }}>联网搜索</span>
+                <Switch
+                  size="small"
+                  checked={enableWebSearch && supportsWebSearch()}
+                  disabled={!supportsWebSearch()}
+                  onChange={setEnableWebSearch}
+                />
+              </div>
+            </Tooltip>
+
             {/* 模型选择器 */}
             <Select
               value={selectedModel}
@@ -628,6 +672,8 @@ const ChatPage: React.FC = () => {
               <p className="welcome-subtitle">
                 基于 <strong>{currentModel.label}</strong> 模型·{' '}
                 {useRag ? <span className="rag-on-text">RAG 知识库增强已开启</span> : '向量语义缓存加速'}
+                {enableThinking && supportsThinking() && <span style={{ color: '#722ed1', marginLeft: 8 }}>· 深度思考已开启</span>}
+                {enableWebSearch && supportsWebSearch() && <span style={{ color: '#13c2c2', marginLeft: 8 }}>· 联网搜索已开启</span>}
               </p>
               <div className="quick-prompts">
                 {QUICK_PROMPTS.map((p, i) => (
@@ -739,6 +785,16 @@ const ChatPage: React.FC = () => {
               {useRag
                 ? <span style={{ color: '#1677ff' }}>RAG 增强已开启 · 知识库检索辅助回答</span>
                 : '向量语义缓存加速 · 相似问题自动加速'}
+              {enableThinking && supportsThinking() && (
+                <span style={{ marginLeft: 8, color: '#722ed1' }}>
+                  <BulbOutlined style={{ marginRight: 3 }} />深度思考已开启
+                </span>
+              )}
+              {enableWebSearch && supportsWebSearch() && (
+                <span style={{ marginLeft: 8, color: '#13c2c2' }}>
+                  <GlobalOutlined style={{ marginRight: 3 }} />联网搜索已开启
+                </span>
+              )}
             </span>
             <span className="input-shortcut">Enter 发送 · Shift+Enter 换行</span>
           </div>

@@ -50,7 +50,7 @@ export const savePlatformSettings = async (settings: any) => {
 // LLM厂商配置相关接口
 export const getLlmProviders = async () => {
   try {
-    const response = await api.get('/settings/llm/providers')
+    const response = await api.get('/ai/llm/providers')
     if (response.data?.code === 200) {
       return response.data?.data
     }
@@ -63,7 +63,14 @@ export const getLlmProviders = async () => {
 
 export const saveLlmProvider = async (provider: any) => {
   try {
-    const response = await api.post('/settings/llm/providers', provider)
+    let response
+    if (provider.id && !provider.id.toString().match(/^\d{13}$/)) {
+      // 已有后端ID（UUID格式），调用PUT更新
+      response = await api.put(`/ai/llm/providers/${provider.id}`, provider)
+    } else {
+      // 新建
+      response = await api.post('/ai/llm/providers', provider)
+    }
     if (response.data?.code === 200) {
       return response.data?.data
     }
@@ -76,6 +83,8 @@ export const saveLlmProvider = async (provider: any) => {
     const index = providers.findIndex((p: any) => p.id === provider.id)
     if (index > -1) {
       providers[index] = { ...provider }
+    } else {
+      providers.push(provider)
     }
   } else {
     provider.id = Date.now().toString()
@@ -87,7 +96,7 @@ export const saveLlmProvider = async (provider: any) => {
 
 export const deleteLlmProvider = async (id: string) => {
   try {
-    const response = await api.delete(`/settings/llm/providers/${id}`)
+    const response = await api.delete(`/ai/llm/providers/${id}`)
     if (response.data?.code === 200) {
       return response.data
     }
@@ -99,9 +108,38 @@ export const deleteLlmProvider = async (id: string) => {
   localStorage.setItem(STORAGE_KEYS.LLM_PROVIDERS, JSON.stringify(filtered))
 }
 
+export const toggleLlmProviderEnabled = async (id: string, enabled: boolean) => {
+  try {
+    const endpoint = enabled ? `/ai/llm/providers/${id}/enable` : `/ai/llm/providers/${id}/disable`
+    const response = await api.post(endpoint)
+    if (response.data?.code === 200) return response.data
+  } catch (error) {
+    console.log('后端API未就绪，本地切换状态')
+  }
+  // 本地模式：更新字段
+  const providers = await getLlmProviders()
+  const idx = providers.findIndex((p: any) => p.id === id)
+  if (idx > -1) {
+    providers[idx].enabled = enabled
+    localStorage.setItem(STORAGE_KEYS.LLM_PROVIDERS, JSON.stringify(providers))
+  }
+}
+
+export const setLlmProviderDefault = async (id: string) => {
+  try {
+    const response = await api.post(`/ai/llm/providers/${id}/default`)
+    if (response.data?.code === 200) return response.data
+  } catch (error) {
+    console.log('后端API未就绪，本地设置默认')
+  }
+  const providers = await getLlmProviders()
+  providers.forEach((p: any) => { p.isDefault = p.id === id })
+  localStorage.setItem(STORAGE_KEYS.LLM_PROVIDERS, JSON.stringify(providers))
+}
+
 export const testLlmConnection = async (provider: any) => {
   try {
-    const response = await api.post('/settings/llm/test', provider)
+    const response = await api.post('/ai/llm/providers/test', provider)
     if (response.data?.code === 200) {
       return response.data?.data
     }

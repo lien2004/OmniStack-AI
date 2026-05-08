@@ -110,7 +110,8 @@ public class ConversationController {
         chatHistoryService.saveMessage(chatId, "user", message, model, null);
 
         // 4. 调用 LLM
-        String answer = multiModelChatService.chat(messages, model, req.getTemperature(), req.getMaxTokens());
+        String answer = multiModelChatService.chat(messages, model, req.getTemperature(), req.getMaxTokens(),
+                req.isEnableThinking(), req.isEnableWebSearch());
 
         // 5. 保存 AI 回复
         chatHistoryService.saveMessage(chatId, "assistant", answer, model, null);
@@ -188,7 +189,8 @@ public class ConversationController {
                     if (saveCache) {
                         saveToCacheAsync(message, fullContent, model);
                     }
-                }
+                },
+                req.isEnableThinking(), req.isEnableWebSearch()
         );
 
         return emitter;
@@ -344,6 +346,8 @@ public class ConversationController {
         private boolean useRag = false;
         private Double temperature = 0.7;
         private Integer maxTokens = 4000;
+        private boolean enableThinking = false;
+        private boolean enableWebSearch = false;
 
         public String getChatId() { return chatId; }
         public void setChatId(String chatId) { this.chatId = chatId; }
@@ -357,5 +361,9 @@ public class ConversationController {
         public void setTemperature(Double temperature) { this.temperature = temperature; }
         public Integer getMaxTokens() { return maxTokens; }
         public void setMaxTokens(Integer maxTokens) { this.maxTokens = maxTokens; }
+        public boolean isEnableThinking() { return enableThinking; }
+        public void setEnableThinking(boolean enableThinking) { this.enableThinking = enableThinking; }
+        public boolean isEnableWebSearch() { return enableWebSearch; }
+        public void setEnableWebSearch(boolean enableWebSearch) { this.enableWebSearch = enableWebSearch; }
     }
 }

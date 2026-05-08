@@ -76,3 +76,8 @@ code {
 .g-page-body {
   padding: 24px 32px;
 }
+
+/* ===== CodeFlow 文件树 hover 效果 ===== */
+.codeflow-file-row:hover .codeflow-file-download {
+  opacity: 1 !important;
+}

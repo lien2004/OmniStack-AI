@@ -1,5 +1,5 @@
-import { useState, useEffect, SetStateAction} from 'react'
-import {Card, Form, Input, Button, Select, Switch, Tabs, message, Space, Table, Tag, Modal, InputNumber} from 'antd'
+import { useState, useEffect } from 'react'
+import {Card, Form, Input, Button, Select, Switch, Tabs, message, Space, Table, Tag, Modal, InputNumber, Tooltip, Popconfirm, Badge, Divider, Alert} from 'antd'
 import {
   SettingOutlined,
   SafetyOutlined,
@@ -8,6 +8,15 @@ import {
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ExperimentOutlined,
+  ThunderboltOutlined,
+  GlobalOutlined,
+  LaptopOutlined,
+  StarOutlined,
+  StarFilled,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import {
   getPlatformSettings,
@@ -17,43 +26,50 @@ import {
   getLlmProviders,
   saveLlmProvider,
   deleteLlmProvider,
+  toggleLlmProviderEnabled,
+  setLlmProviderDefault,
   getDatabaseConfigs,
   saveDatabaseConfig,
   deleteDatabaseConfig,
-  saveSecuritySettings
+  saveSecuritySettings,
+  testLlmConnection,
 } from '../../services/settings'
 
 const {TabPane} = Tabs
 
 // LLM厂商配置
-const LLM_PROVIDERS = [
-  {value: 'openai', label: 'OpenAI', models: ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo', 'gpt-4o', 'gpt-4o-mini']},
-  {
-    value: 'anthropic',
-    label: 'Anthropic Claude',
-    models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku', 'claude-3-5-sonnet']
-  },
-  {value: 'google', label: 'Google Gemini', models: ['gemini-pro', 'gemini-pro-vision', 'gemini-ultra']},
-  {value: 'baidu', label: '百度文心一言', models: ['ernie-bot', 'ernie-bot-turbo', 'ernie-bot-4']},
-  {value: 'aliyun', label: '阿里通义千问', models: ['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-long']},
-  {value: 'doubao', label: '字节豆包', models: ['doubao-lite', 'doubao-pro', 'doubao-vision']},
-  {value: 'deepseek', label: 'DeepSeek', models: ['deepseek-chat', 'deepseek-coder', 'deepseek-reasoner']},
-  {value: 'moonshot', label: 'Kimi (月之暗面)', models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k']},
-  {
-    value: 'meta',
-    label: 'Meta Llama',
-    models: ['llama-2-7b', 'llama-2-13b', 'llama-2-70b', 'llama-3-8b', 'llama-3-70b']
-  },
-  {value: 'mistral', label: 'Mistral AI', models: ['mistral-tiny', 'mistral-small', 'mistral-medium', 'mistral-large']},
-  {value: 'zhipu', label: '智谱 GLM', models: ['glm-4', 'glm-4v', 'glm-3-turbo', 'chatglm-turbo']},
-  {value: 'qwen', label: '通义千问 (独立)', models: ['qwen-7b', 'qwen-14b', 'qwen-72b', 'qwen-110b']},
-  {value: 'yi', label: '零一万物 Yi', models: ['yi-6b', 'yi-34b', 'yi-34b-chat']},
-  {value: 'baichuan', label: '百川智能', models: ['baichuan2-7b', 'baichuan2-13b', 'baichuan2-53b']},
-  {value: 'ollama', label: 'Ollama (本地)', models: ['llama2', 'llama3', 'mistral', 'codellama', 'vicuna']},
-  {value: 'azure', label: 'Azure OpenAI', models: ['gpt-4', 'gpt-4-turbo', 'gpt-35-turbo']},
-  {value: 'cohere', label: 'Cohere', models: ['command', 'command-light', 'command-nightly']},
-  {value: 'ai21', label: 'AI21 Labs', models: ['j2-ultra', 'j2-mid', 'j2-light']},
-]
+// vendor标识 → {显示名、预设基址、预置模型列表}
+const VENDOR_PRESETS: Record<string, { label: string; baseUrl: string; models: string[]; icon: string; color: string }> = {
+  openai:    { label: 'OpenAI', baseUrl: 'https://api.openai.com/v1', icon: '🤖', color: '#10a37f',
+               models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo', 'o1', 'o1-mini'] },
+  anthropic: { label: 'Anthropic Claude', baseUrl: 'https://api.anthropic.com/v1', icon: '🧡', color: '#d97706',
+               models: ['claude-opus-4-7', 'claude-sonnet-4-6', 'claude-opus-4-6', 'claude-3-5-sonnet-20241022', 'claude-3-haiku-20240307'] },
+  zhipu:     { label: '智谱AI (GLM)', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', icon: '🐉', color: '#1677ff',
+               models: ['glm-5.1', 'glm-5', 'glm-5-turbo', 'glm-4.7', 'glm-4.6', 'glm-4.5', 'glm-4.5-air'] },
+  deepseek:  { label: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', icon: '🔭', color: '#722ed1',
+               models: ['deepseek-v4-pro', 'deepseek-v4-flash', 'deepseek-chat', 'deepseek-reasoner'] },
+  moonshot:  { label: 'Kimi (月之暗面)', baseUrl: 'https://api.moonshot.cn/v1', icon: '🌙', color: '#17aeae',
+               models: ['moonshot-v1-128k', 'moonshot-v1-32k', 'moonshot-v1-8k'] },
+  aliyun:    { label: '阿里通义千问', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', icon: '☁️', color: '#f97316',
+               models: ['qwen-max', 'qwen-plus', 'qwen-turbo', 'qwen-coder-plus', 'qwen-long'] },
+  doubao:    { label: '字节豆包', baseUrl: 'https://ark.cn-beijing.volces.com/api/v3', icon: '🫘', color: '#3b82f6',
+               models: ['doubao-pro-32k', 'doubao-pro-4k', 'doubao-lite-32k'] },
+  baidu:     { label: '百度文心一言', baseUrl: 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat', icon: '🌊', color: '#2563eb',
+               models: ['ernie-4.0-8k', 'ernie-4.0-turbo-8k', 'ernie-bot'] },
+  ollama:    { label: 'Ollama (本地)', baseUrl: 'http://localhost:11434/v1', icon: '💻', color: '#52c41a',
+               models: ['llama3', 'llama3.1', 'mistral', 'codellama', 'qwen2', 'gemma2'] },
+  codeflow:  { label: 'CodeFlow / 灵龙AI', baseUrl: 'https://codeflow.asia/v1', icon: '🚀', color: '#8b5cf6',
+               models: ['gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'claude-opus-4-7', 'claude-sonnet-4-6'] },
+  custom:    { label: '自建模型', baseUrl: '', icon: '⚙️', color: '#8c8c8c', models: [] },
+}
+
+const VENDOR_OPTIONS = Object.entries(VENDOR_PRESETS).map(([value, v]) => ({ value, label: `${v.icon} ${v.label}` }))
+
+const PROVIDER_TYPE_MAP: Record<string, { label: string; color: string; icon: any }> = {
+  commercial:   { label: '商用', color: '#1677ff', icon: <ThunderboltOutlined /> },
+  open_source:  { label: '开源', color: '#52c41a', icon: <GlobalOutlined /> },
+  self_hosted:  { label: '自建', color: '#fa8c16', icon: <LaptopOutlined /> },
+}
 
 // 数据库类型配置
 const DATABASE_TYPES = [
@@ -82,12 +98,15 @@ function Settings() {
   const [dbModalVisible, setDbModalVisible] = useState(false)
   const [editingProvider, setEditingProvider] = useState<any>(null)
   const [editingDbConfig, setEditingDbConfig] = useState<any>(null)
-  const [selectedProvider, setSelectedProvider] = useState('openai')
+  const [selectedVendor, setSelectedVendor] = useState('openai')
   const [, setSelectedDbType] = useState('postgresql')
   const [loading, setLoading] = useState(false)
+  const [testLoading, setTestLoading] = useState(false)
   const [testResult, setTestResult] = useState<any>(null)
+  const [llmTestResult, setLlmTestResult] = useState<any>(null)
   const [dbInfoModalVisible, setDbInfoModalVisible] = useState(false)
   const [currentDbInfo, setCurrentDbInfo] = useState<any>(null)
+  const [llmRefreshing, setLlmRefreshing] = useState(false)
 
   useEffect(() => {
     loadSettings()
@@ -101,8 +120,42 @@ function Settings() {
         securityForm.setFieldsValue(settings.security || {})
       }
 
-      const providers = await getLlmProviders()
-      setLlmProviders(providers || [])
+      let providers = await getLlmProviders()
+      providers = providers || []
+
+      // 自动初始化通义千问（如未配置）
+      const hasAliyun = providers.some((p: any) => p.vendor === 'aliyun')
+      if (!hasAliyun) {
+        const aliyunPreset = VENDOR_PRESETS.aliyun
+        const newProvider = {
+          id: Date.now().toString(),
+          name: aliyunPreset.label,
+          vendor: 'aliyun',
+          providerType: 'commercial',
+          baseUrl: aliyunPreset.baseUrl,
+          apiKey: 'sk-0d90148f24b0484c8f2d5cf0098656cb',
+          defaultModel: 'qwen-max',
+          customModels: aliyunPreset.models,
+          temperature: 0.7,
+          maxTokens: 4000,
+          topP: 1.0,
+          contextLength: 32000,
+          streamEnabled: true,
+          timeoutSeconds: 120,
+          isDefault: false,
+          enabled: true,
+        }
+        try {
+          await saveLlmProvider(newProvider)
+          providers = [...providers, newProvider]
+          message.success('已自动添加阿里通义千问配置')
+        } catch {
+          // 本地模式：直接加入列表
+          providers = [...providers, newProvider]
+        }
+      }
+
+      setLlmProviders(providers)
 
       const dbConfigs = await getDatabaseConfigs()
       setDatabaseConfigs(dbConfigs || [])
@@ -128,23 +181,35 @@ function Settings() {
   // LLM配置相关
   const handleAddLlmProvider = () => {
     setEditingProvider(null)
+    setLlmTestResult(null)
     llmModalForm.resetFields()
     llmModalForm.setFieldsValue({
-      provider: 'openai',
-      model: 'gpt-4',
+      vendor: 'openai',
+      providerType: 'commercial',
       temperature: 0.7,
-      maxTokens: 4096,
-      isDefault: false
+      maxTokens: 4000,
+      topP: 1.0,
+      contextLength: 32000,
+      streamEnabled: true,
+      timeoutSeconds: 120,
+      isDefault: false,
+      enabled: true,
     })
-    setSelectedProvider('openai')
+    setSelectedVendor('openai')
     setLlmModalVisible(true)
   }
 
-  const handleEditLlmProvider = (record: SetStateAction<null>) => {
+  const handleEditLlmProvider = (record: any) => {
     setEditingProvider(record)
-    llmModalForm.setFieldsValue(record)
-    // @ts-ignore
-    setSelectedProvider(record.provider)
+    setLlmTestResult(null)
+    const formData = {
+      ...record,
+      customModels: Array.isArray(record.customModels)
+        ? record.customModels.join(',')
+        : record.customModels || '',
+    }
+    llmModalForm.setFieldsValue(formData)
+    setSelectedVendor(record.vendor || 'custom')
     setLlmModalVisible(true)
   }
 
@@ -161,26 +226,71 @@ function Settings() {
   const handleSaveLlmProvider = async () => {
     try {
       const values = await llmModalForm.validateFields()
-      const saved = await saveLlmProvider({ ...values, id: editingProvider?.id })
-      
-      if (editingProvider) {
-        setLlmProviders(llmProviders.map(p => p.id === editingProvider.id ? saved : p))
-      } else {
-        setLlmProviders([...llmProviders, saved])
+      // 将逽号分隔的字符串转为数组
+      if (typeof values.customModels === 'string') {
+        values.customModels = values.customModels.split(',').map((s: string) => s.trim()).filter(Boolean)
       }
-      
+      const saved = await saveLlmProvider({ ...values, id: editingProvider?.id })
+      if (editingProvider) {
+        setLlmProviders(llmProviders.map(p => p.id === editingProvider.id ? (saved || { ...values, id: editingProvider.id }) : p))
+      } else {
+        setLlmProviders([...llmProviders, saved || { ...values, id: Date.now().toString() }])
+      }
       setLlmModalVisible(false)
       message.success('保存成功')
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.errorFields) return // 表单校验错误
       message.error('保存失败')
     }
   }
 
-  const handleProviderChange = (value: string) => {
-    setSelectedProvider(value)
-    const provider = LLM_PROVIDERS.find(p => p.value === value)
-    if (provider) {
-      llmModalForm.setFieldsValue({ model: provider.models[0] })
+  const handleVendorChange = (value: string) => {
+    setSelectedVendor(value)
+    const preset = VENDOR_PRESETS[value]
+    if (preset) {
+      llmModalForm.setFieldsValue({
+        baseUrl: preset.baseUrl,
+        defaultModel: preset.models[0] || '',
+      })
+    }
+  }
+
+  const handleToggleEnabled = async (id: string, enabled: boolean) => {
+    await toggleLlmProviderEnabled(id, enabled)
+    setLlmProviders(llmProviders.map(p => p.id === id ? { ...p, enabled } : p))
+    message.success(enabled ? '已启用' : '已禁用')
+  }
+
+  const handleSetDefault = async (id: string) => {
+    await setLlmProviderDefault(id)
+    setLlmProviders(llmProviders.map(p => ({ ...p, isDefault: p.id === id })))
+    message.success('已设为默认供应商')
+  }
+
+  const handleTestLlmConnection = async () => {
+    try {
+      const values = llmModalForm.getFieldsValue()
+      if (!values.apiKey) {
+        setLlmTestResult({ success: false, message: '请先填写 API Key' })
+        return
+      }
+      setTestLoading(true)
+      setLlmTestResult(null)
+      const result = await testLlmConnection(values)
+      setLlmTestResult(result)
+    } finally {
+      setTestLoading(false)
+    }
+  }
+
+  const handleRefreshLlm = async () => {
+    setLlmRefreshing(true)
+    try {
+      const providers = await getLlmProviders()
+      setLlmProviders(providers || [])
+      message.success('已刷新')
+    } finally {
+      setLlmRefreshing(false)
     }
   }
 
@@ -306,16 +416,52 @@ function Settings() {
     }
   }
 
-  // LLM表格列
+  // LLM表格列（列表模式）
   const llmColumns = [
-    { title: '厂商', dataIndex: 'provider', key: 'provider', render: (v: string) => LLM_PROVIDERS.find(p => p.value === v)?.label || v },
-    { title: '模型', dataIndex: 'model', key: 'model' },
-    { title: 'API Key', dataIndex: 'apiKey', key: 'apiKey', render: (v: string) => v ? '••••••••' + v.slice(-4) : '-' },
-    { title: '默认', dataIndex: 'isDefault', key: 'isDefault', render: (v: boolean) => v ? <Tag color="blue">默认</Tag> : null },
+    { title: '名称', dataIndex: 'name', key: 'name',
+      render: (v: string, r: any) => {
+        const preset = VENDOR_PRESETS[r.vendor] || VENDOR_PRESETS.custom
+        return (
+          <Space>
+            <span style={{ fontSize: 18 }}>{preset.icon}</span>
+            <div>
+              <div style={{ fontWeight: 600 }}>{v}</div>
+              <div style={{ fontSize: 11, color: '#8c8c8c' }}>{preset.label}</div>
+            </div>
+          </Space>
+        )
+      }
+    },
+    { title: '默认模型', dataIndex: 'defaultModel', key: 'defaultModel' },
+    { title: 'API Key', dataIndex: 'apiKeyMasked', key: 'apiKeyMasked',
+      render: (v: string, r: any) => v || (r.apiKey ? '••••••••' + (r.apiKey || '').slice(-4) : <span style={{ color: '#d9d9d9' }}>未设置</span>) },
+    { title: '类型', dataIndex: 'providerType', key: 'providerType',
+      render: (v: string) => {
+        const t = PROVIDER_TYPE_MAP[v] || PROVIDER_TYPE_MAP.commercial
+        return <Tag color={t.color}>{t.icon} {t.label}</Tag>
+      }
+    },
+    { title: '状态', dataIndex: 'enabled', key: 'enabled',
+      render: (v: boolean, r: any) => (
+        <Space>
+          <Switch size="small" checked={v} onChange={e => handleToggleEnabled(r.id, e)} />
+          {r.isDefault && <Tag color="gold"><StarFilled style={{ marginRight: 3 }} />默认</Tag>}
+        </Space>
+      )
+    },
+    { title: '路由关键词', dataIndex: 'routingKeywords', key: 'routingKeywords',
+      render: (v: string) => v ? v.split(',').map((k: string) => <Tag key={k} style={{ fontSize: 11 }}>{k.trim()}</Tag>) : <span style={{ color: '#d9d9d9' }}>-</span>
+    },
     { title: '操作', key: 'action', render: (_: any, record: any) => (
       <Space>
+        <Tooltip title="设为默认">
+          <Button type="text" icon={record.isDefault ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
+            onClick={() => handleSetDefault(record.id)} />
+        </Tooltip>
         <Button type="link" icon={<EditOutlined />} onClick={() => handleEditLlmProvider(record)}>编辑</Button>
-        <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDeleteLlmProvider(record.id)}>删除</Button>
+        <Popconfirm title="确认删除此供应商？" onConfirm={() => handleDeleteLlmProvider(record.id)} okText="删除" cancelText="取消">
+          <Button type="link" danger icon={<DeleteOutlined />}>删除</Button>
+        </Popconfirm>
       </Space>
     )},
   ]
@@ -336,8 +482,6 @@ function Settings() {
       </Space>
     )},
   ]
-
-  const currentProvider = LLM_PROVIDERS.find(p => p.value === selectedProvider)
 
   return (
     <div className="settings">
@@ -394,25 +538,106 @@ function Settings() {
             </Form>
           </TabPane>
 
-          <TabPane
-            tab={
-              <span>
-                <ApiOutlined /> LLM配置
-              </span>
-            }
-            key="llm"
-          >
-            <div style={{ marginBottom: 16 }}>
-              <Button type="primary" icon={<PlusOutlined />} onClick={handleAddLlmProvider}>
-                添加LLM厂商
-              </Button>
+          <TabPane tab={<span><ApiOutlined /> LLM配置</span>} key="llm">
+            {/* 顶部操作栏 */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Space>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleAddLlmProvider}>添加供应商</Button>
+                <Button icon={<ReloadOutlined />} loading={llmRefreshing} onClick={handleRefreshLlm}>刷新</Button>
+              </Space>
+              <Space>
+                <Badge count={llmProviders.filter(p => p.enabled).length} style={{ backgroundColor: '#52c41a' }}>
+                  <Tag color="green">已启用 {llmProviders.filter(p => p.enabled).length}</Tag>
+                </Badge>
+                <Tag color="default">共 {llmProviders.length} 个供应商</Tag>
+              </Space>
             </div>
-            <Table 
-              columns={llmColumns} 
-              dataSource={llmProviders} 
-              rowKey="id"
-              pagination={false}
-            />
+
+            {/* 供应商卡片网格 */}
+            {llmProviders.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '48px 0', color: '#8c8c8c' }}>
+                <ApiOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+                <div style={{ fontSize: 16, marginBottom: 8 }}>暂无供应商配置</div>
+                <div style={{ fontSize: 13 }}>点击『添加供应商』开始配置您的大语言模型</div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 16 }}>
+                {llmProviders.map(p => {
+                  const preset = VENDOR_PRESETS[p.vendor] || VENDOR_PRESETS.custom
+                  const typeInfo = PROVIDER_TYPE_MAP[p.providerType] || PROVIDER_TYPE_MAP.commercial
+                  return (
+                    <Card
+                      key={p.id}
+                      size="small"
+                      style={{ borderRadius: 12, border: p.isDefault ? `2px solid ${preset.color}` : undefined,
+                               opacity: p.enabled ? 1 : 0.55 }}
+                      bodyStyle={{ padding: '16px 20px' }}
+                    >
+                      {/* 卡片头部 */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                          <div style={{ width: 44, height: 44, borderRadius: 10,
+                            background: `${preset.color}20`, display: 'flex', alignItems: 'center',
+                            justifyContent: 'center', fontSize: 22 }}>
+                            {preset.icon}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: 15 }}>{p.name}</div>
+                            <div style={{ color: '#8c8c8c', fontSize: 12 }}>{preset.label}</div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                          {p.isDefault && <Tag color="gold" style={{ fontSize: 11 }}><StarFilled /> 默认</Tag>}
+                          <Tag color={typeInfo.color} style={{ fontSize: 11 }}>{typeInfo.label}</Tag>
+                          <Switch size="small" checked={p.enabled} onChange={e => handleToggleEnabled(p.id, e)} />
+                        </div>
+                      </div>
+
+                      {/* 卡片内容信息 */}
+                      <div style={{ fontSize: 13, color: '#595959' }}>
+                        <div style={{ marginBottom: 6 }}>
+                          🧠 模型：<Tag color="blue" style={{ fontSize: 12 }}>{p.defaultModel || '-'}</Tag>
+                        </div>
+                        {p.routingKeywords && (
+                          <div style={{ marginBottom: 6 }}>
+                            🎯 路由：{p.routingKeywords.split(',').map((k: string) => (
+                              <Tag key={k} style={{ fontSize: 11, marginLeft: 4 }}>{k.trim()}</Tag>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 12, color: '#8c8c8c' }}>
+                          <span>🌡️ {p.temperature}</span>
+                          <span>📝 {p.maxTokens} Tokens</span>
+                          <span>Top-P: {p.topP}</span>
+                          {p.streamEnabled && <span style={{ color: '#52c41a' }}>• 流式</span>}
+                        </div>
+                      </div>
+
+                      <Divider style={{ margin: '12px 0' }} />
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                        <Tooltip title="设为默认">
+                          <Button size="small" type="text" icon={p.isDefault ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
+                            onClick={() => handleSetDefault(p.id)} />
+                        </Tooltip>
+                        <Button size="small" icon={<EditOutlined />} onClick={() => handleEditLlmProvider(p)}>编辑</Button>
+                        <Popconfirm title="确认删除？" onConfirm={() => handleDeleteLlmProvider(p.id)} okText="删除" cancelText="取消">
+                          <Button size="small" danger icon={<DeleteOutlined />}>删除</Button>
+                        </Popconfirm>
+                      </div>
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* 列表详细表格（可过滑查看） */}
+            {llmProviders.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <Divider orientation="left" style={{ fontSize: 13, color: '#8c8c8c' }}>详细列表</Divider>
+                <Table columns={llmColumns} dataSource={llmProviders} rowKey="id"
+                  size="small" pagination={false} scroll={{ x: 900 }} />
+              </div>
+            )}
           </TabPane>
 
           <TabPane
@@ -481,71 +706,112 @@ function Settings() {
         </Tabs>
       </Card>
 
-      {/* LLM厂商配置弹窗 */}
+      {/* LLM供应商配置弹窗（全面升级） */}
       <Modal
-        title={editingProvider ? '编辑LLM配置' : '添加LLM配置'}
+        title={editingProvider ? '编辑 LLM 供应商配置' : '添加 LLM 供应商'}
         open={llmModalVisible}
         onOk={handleSaveLlmProvider}
-        onCancel={() => setLlmModalVisible(false)}
-        width={600}
+        onCancel={() => { setLlmModalVisible(false); setLlmTestResult(null) }}
+        width={700}
+        okText="保存"
+        footer={[
+          <Button key="test" icon={<ExperimentOutlined />} loading={testLoading} onClick={handleTestLlmConnection}>
+            测试连接
+          </Button>,
+          <Button key="cancel" onClick={() => { setLlmModalVisible(false); setLlmTestResult(null) }}>取消</Button>,
+          <Button key="save" type="primary" onClick={handleSaveLlmProvider}>保存</Button>,
+        ]}
       >
-        <Form form={llmModalForm} layout="vertical">
-          <Form.Item
-            label="模型提供商"
-            name="provider"
-            rules={[{ required: true }]}
-          >
-            <Select onChange={handleProviderChange}>
-              {LLM_PROVIDERS.map(p => (
-                <Select.Option key={p.value} value={p.value}>{p.label}</Select.Option>
-              ))}
-            </Select>
+        <Form form={llmModalForm} layout="vertical" style={{ maxHeight: '65vh', overflowY: 'auto', paddingRight: 4 }}>
+          <Divider orientation="left" style={{ fontSize: 13 }}>基本信息</Divider>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+            <Form.Item label="供应商名称" name="name" rules={[{ required: true, message: '请输入名称' }]}>
+              <Input placeholder="如：智谱AI GLM-5.1供应商" />
+            </Form.Item>
+            <Form.Item label="厂商" name="vendor" rules={[{ required: true }]}>
+              <Select options={VENDOR_OPTIONS} onChange={handleVendorChange} />
+            </Form.Item>
+            <Form.Item label="供应商类型" name="providerType">
+              <Select>
+                <Select.Option value="commercial">👾 商用 (Commercial)</Select.Option>
+                <Select.Option value="open_source">🌏 开源 (Open Source)</Select.Option>
+                <Select.Option value="self_hosted">💻 自建 (Self-Hosted)</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item label="默认模型" name="defaultModel" rules={[{ required: true, message: '请输入模型名' }]}>
+              {selectedVendor && VENDOR_PRESETS[selectedVendor]?.models.length > 0 ? (
+                <Select showSearch allowClear>
+                  {VENDOR_PRESETS[selectedVendor].models.map(m => (
+                    <Select.Option key={m} value={m}>{m}</Select.Option>
+                  ))}
+                </Select>
+              ) : (
+                <Input placeholder="输入模型名，如 llama3" />
+              )}
+            </Form.Item>
+          </div>
+
+          <Form.Item label="API Key" name="apiKey">
+            <Input.Password placeholder="请输入 API Key（不修改可留空）" />
           </Form.Item>
-          <Form.Item
-            label="模型"
-            name="model"
-            rules={[{ required: true }]}
-          >
-            <Select>
-              {currentProvider?.models.map(m => (
-                <Select.Option key={m} value={m}>{m}</Select.Option>
-              ))}
-            </Select>
+          <Form.Item label="Base URL" name="baseUrl" tooltip="API 基础地址，自建或代理时修改">
+            <Input placeholder="如: https://api.openai.com/v1" />
           </Form.Item>
-          <Form.Item
-            label="API Key"
-            name="apiKey"
-            rules={[{ required: true, message: '请输入API Key' }]}
-          >
-            <Input.Password placeholder="请输入API Key" />
+          <Form.Item label="自定义模型列表" name="customModels" tooltip="除默认模型外，这些模型名也可被调用，逗号分隔">
+            <Input.TextArea rows={2} placeholder="多个模型用逗号分隔，如: model-a,model-b,model-c" />
           </Form.Item>
-          <Form.Item
-            label="Base URL (可选)"
-            name="baseUrl"
-          >
-            <Input placeholder="自定义API基础URL，如使用代理" />
+          <Form.Item label="路由关键词前缀" name="routingKeywords" tooltip="消息路由时，模型名以这些前缀开头就路由到此供应商，逗号分隔">
+            <Input placeholder="如: glm,chatglm 或 gpt,claude" />
           </Form.Item>
-          <Form.Item
-            label="温度参数 (Temperature)"
-            name="temperature"
-            initialValue={0.7}
-          >
-            <InputNumber min={0} max={2} step={0.1} style={{ width: '100%' }} />
+
+          <Divider orientation="left" style={{ fontSize: 13 }}>模型参数</Divider>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+            <Form.Item label={
+              <span>Temperature <span style={{ color: '#8c8c8c', fontSize: 12 }}>(控制随机性, 0~2)</span></span>
+            } name="temperature">
+              <InputNumber min={0} max={2} step={0.05} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item label="Top-P" name="topP">
+              <InputNumber min={0} max={1} step={0.05} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item label="Max Tokens (单次最大输出)" name="maxTokens">
+              <InputNumber min={100} max={128000} step={500} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item label="Context Length (上下文窗口)" name="contextLength">
+              <InputNumber min={1000} max={2000000} step={1000} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item label="超时时间 (秒)" name="timeoutSeconds">
+              <InputNumber min={10} max={600} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item label="开启流式输出" name="streamEnabled" valuePropName="checked">
+              <Switch />
+            </Form.Item>
+          </div>
+
+          <Divider orientation="left" style={{ fontSize: 13 }}>其他设置</Divider>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
+            <Form.Item label="设为默认供应商" name="isDefault" valuePropName="checked">
+              <Switch />
+            </Form.Item>
+            <Form.Item label="启用此供应商" name="enabled" valuePropName="checked">
+              <Switch />
+            </Form.Item>
+          </div>
+          <Form.Item label="备注" name="remark">
+            <Input.TextArea rows={2} placeholder="可选，说明此供应商的用途或配置背景" />
           </Form.Item>
-          <Form.Item
-            label="最大Token数"
-            name="maxTokens"
-            initialValue={4096}
-          >
-            <InputNumber min={100} max={32000} step={100} style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            label="设为默认"
-            name="isDefault"
-            valuePropName="checked"
-          >
-            <Switch />
-          </Form.Item>
+
+          {/* 连接测试结果 */}
+          {llmTestResult && (
+            <Alert
+              type={llmTestResult.success ? 'success' : 'error'}
+              icon={llmTestResult.success ? <CheckCircleOutlined /> : <CloseCircleOutlined />}
+              showIcon
+              message={llmTestResult.success ? '连接测试成功' : '连接测试失败'}
+              description={llmTestResult.message}
+              style={{ marginTop: 8 }}
+            />
+          )}
         </Form>
       </Modal>
 
