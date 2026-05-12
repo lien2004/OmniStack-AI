@@ -71,13 +71,19 @@ deepseek:
   thinking-enabled: false
   reasoning-effort: high
 
+# ========== 通义千问/阿里云配置 ==========
+aliyun:
+  base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+  api-key: your-api-key
+
 # ========== 多模型路由配置 ==========
-# 模型提供商路由：GLM系列 → 智谱AI; gpt/linglong/claude系列 → CodeFlow/灵龙AI; deepseek系列 → DeepSeek
+# 模型提供商路由：GLM系列 → 智谱AI; gpt/linglong/claude系列 → CodeFlow/灵龙AI; deepseek系列 → DeepSeek; qwen/qwq系列 → 通义千问
 model:
   routing:
     zhipu-models: glm  # 以glm开头的模型路由到智谱AI
     linglong-models: gpt,linglong,claude  # 路由到CodeFlow/灵龙AI
     deepseek-models: deepseek  # 路由到DeepSeek
+    aliyun-models: qwen,qwq  # 路由到通义千问
 
 # 向量存储配置
 vector:

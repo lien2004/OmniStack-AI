@@ -27,7 +27,7 @@ public class CodeFlowChatService {
     @Value("${bailian.api-key}")
     private String apiKey;
 
-    @Value("${bailian.model:gpt-5.4-mini}")
+    @Value("${bailian.model:gpt-5.5}")
     private String chatModel;
 
     private final RestTemplate restTemplate = new RestTemplate();

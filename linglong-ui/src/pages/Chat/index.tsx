@@ -23,28 +23,54 @@ const { Text } = Typography;
 // ── 可用模型列表（支持多提供商） ───────────────────────────────────────────
 
 const MODEL_LIST = [
-  // 智谱AI - GLM 系列
-  { value: 'glm-4.6',     label: 'GLM-4.6',       desc: '最新旗舰，综合能力强',     tag: '推荐',  tagColor: '#1677ff',  provider: '智谱AI' },
-  { value: 'glm-4.7',     label: 'GLM-4.7',       desc: '增强旗舰，逻辑推理优',     tag: '旗舰',  tagColor: '#722ed1',  provider: '智谱AI' },
-  { value: 'glm-5',       label: 'GLM-5',         desc: '高能旗舰，全模态理解',     tag: '强大',  tagColor: '#eb2f96',  provider: '智谱AI' },
-  { value: 'glm-5-turbo', label: 'GLM-5-Turbo',   desc: '极速推理，低延迟首选',     tag: '快速',  tagColor: '#52c41a',  provider: '智谱AI' },
-  { value: 'glm-5.1',     label: 'GLM-5.1',       desc: '下一代旗舰，最强能力',     tag: 'NEW',   tagColor: '#fa8c16',  provider: '智谱AI' },
-  { value: 'glm-4.5',     label: 'GLM-4.5',       desc: '通用均衡，稳定可靠',       tag: '均衡',  tagColor: '#13c2c2',  provider: '智谱AI' },
-  { value: 'glm-4.5-air', label: 'GLM-4.5-Air',   desc: '轻量高效，快速响应',       tag: '轻量',  tagColor: '#8c8c8c',  provider: '智谱AI' },
+  // CodeFlow / 灵龙AI 系列
+  { value: 'gpt-5.5',                    label: 'GPT-5.5',                desc: '最新旗舰 · 超强推理',       tag: '旗舰',  tagColor: '#722ed1',  provider: 'CodeFlow' },
+  { value: 'gpt-5.5-openai-compact',     label: 'GPT-5.5 Compact',        desc: '旗舰轻量 · 快速响应',       tag: '快速',  tagColor: '#52c41a',  provider: 'CodeFlow' },
+  { value: 'gpt-5.4',                    label: 'GPT-5.4',                desc: '旗舰模型 · 全能开发',       tag: '强大',  tagColor: '#eb2f96',  provider: 'CodeFlow' },
+  { value: 'gpt-5.4-mini',               label: 'GPT-5.4 Mini',           desc: '轻量版 · 快速响应',           tag: '轻量',  tagColor: '#8c8c8c',  provider: 'CodeFlow' },
+  { value: 'gpt-5.4-openai-compact',     label: 'GPT-5.4 Compact',        desc: '均衡版 · 高性价比',           tag: '均衡',  tagColor: '#13c2c2',  provider: 'CodeFlow' },
+  { value: 'gpt-5.3-codex',              label: 'GPT-5.3 Codex',          desc: '代码专精 · 编程首选',       tag: 'CODE',  tagColor: '#1677ff',  provider: 'CodeFlow' },
+  { value: 'gpt-5.3-codex-openai-compact', label: 'GPT-5.3 Codex Compact', desc: '代码轻量 · 高效编程',    tag: '快速',  tagColor: '#52c41a',  provider: 'CodeFlow' },
+  { value: 'gpt-5.3-codex-spark',        label: 'GPT-5.3 Codex Spark',    desc: '代码极速 · 辅助补全',       tag: '极速',  tagColor: '#fa8c16',  provider: 'CodeFlow' },
+  { value: 'gpt-5.2',                    label: 'GPT-5.2',                desc: '均衡版 · 稳定可靠',           tag: '稳定',  tagColor: '#13c2c2',  provider: 'CodeFlow' },
+  { value: 'gpt-5.2-openai-compact',     label: 'GPT-5.2 Compact',        desc: '轻量稳定 · 低成本',           tag: '轻量',  tagColor: '#8c8c8c',  provider: 'CodeFlow' },
+  { value: 'claude-opus-4-7',            label: 'Claude Opus 4.7',        desc: '顶级推理 · 代码优化',       tag: '顶级',  tagColor: '#f5222d',  provider: 'CodeFlow' },
+  { value: 'claude-sonnet-4-6',          label: 'Claude Sonnet 4.6',      desc: '均衡高效 · 企业级',           tag: '推荐',  tagColor: '#1677ff',  provider: 'CodeFlow' },
+  { value: 'claude-opus-4-6',            label: 'Claude Opus 4.6',        desc: '深度思考 · 复杂任务',       tag: '强大',  tagColor: '#eb2f96',  provider: 'CodeFlow' },
+  { value: 'claude-haiku-4-5-20251001',  label: 'Claude Haiku 4.5',       desc: '极速轻量 · 低成本',           tag: '轻量',  tagColor: '#8c8c8c',  provider: 'CodeFlow' },
   // DeepSeek 系列
-  { value: 'deepseek-v4-pro',  label: 'DeepSeek-V4-Pro',  desc: '深度推理，思考模式',   tag: '思考',  tagColor: '#722ed1',  provider: 'DeepSeek' },
-  { value: 'deepseek-v4-flash', label: 'DeepSeek-V4-Flash', desc: '极速响应，高性价比',  tag: '快速',  tagColor: '#52c41a',  provider: 'DeepSeek' },
-  // CodeFlow 灵龙AI 系列 - OpenAI GPT
-  { value: 'gpt-5.5',           label: 'GPT-5.5',           desc: 'CodeFlow · 最新旗舰',    tag: '旗舰',  tagColor: '#722ed1',  provider: '灵龙AI' },
-  { value: 'gpt-5.4',           label: 'GPT-5.4',           desc: 'CodeFlow · 高性能版',    tag: '强大',  tagColor: '#eb2f96',  provider: '灵龙AI' },
-  { value: 'gpt-5.4-mini',      label: 'GPT-5.4-Mini',      desc: 'CodeFlow · 轻量快速',    tag: '快速',  tagColor: '#52c41a',  provider: '灵龙AI' },
-  { value: 'gpt-5.2',           label: 'GPT-5.2',           desc: 'CodeFlow · 均衡版',      tag: '均衡',  tagColor: '#13c2c2',  provider: '灵龙AI' },
-  { value: 'linglong',          label: '灵龙AI 默认',       desc: 'CodeFlow · 智能编程助手', tag: 'CODE',  tagColor: '#1677ff',  provider: '灵龙AI' },
-  // CodeFlow 灵龙AI 系列 - Anthropic Claude
-  { value: 'claude-opus-4-7',   label: 'Claude Opus 4.7',   desc: 'CodeFlow · 最强推理',    tag: '顶级',  tagColor: '#f5222d',  provider: '灵龙AI' },
-  { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6', desc: 'CodeFlow · 高性价比',    tag: '推荐',  tagColor: '#1677ff',  provider: '灵龙AI' },
-  { value: 'claude-opus-4-6',   label: 'Claude Opus 4.6',   desc: 'CodeFlow · 深度思考',    tag: '强大',  tagColor: '#eb2f96',  provider: '灵龙AI' },
-  { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5', desc: 'CodeFlow · 极速轻量', tag: '轻量',  tagColor: '#8c8c8c',  provider: '灵龙AI' },
+  { value: 'deepseek-v4-pro',            label: 'DeepSeek V4 Pro',        desc: '深度思考 · 最强推理',       tag: '思考',  tagColor: '#722ed1',  provider: 'DeepSeek' },
+  { value: 'deepseek-v4-flash',          label: 'DeepSeek V4 Flash',      desc: '极速响应 · 高性价比',       tag: '快速',  tagColor: '#52c41a',  provider: 'DeepSeek' },
+  { value: 'deepseek-chat',              label: 'DeepSeek Chat',          desc: '通用对话 · 均衡性能',       tag: '通用',  tagColor: '#1677ff',  provider: 'DeepSeek' },
+  { value: 'deepseek-reasoner',          label: 'DeepSeek Reasoner',      desc: '推理增强 · 逻辑严谨',       tag: '推理',  tagColor: '#fa8c16',  provider: 'DeepSeek' },
+  // 智谱AI - GLM 系列
+  { value: 'glm-5.1',     label: 'GLM-5.1',       desc: '下一代旗舰 · 最强能力',      tag: 'NEW',   tagColor: '#fa8c16',  provider: '智谱AI' },
+  { value: 'glm-5',       label: 'GLM-5',         desc: '高能旗舰 · 全模态理解',      tag: '强大',  tagColor: '#eb2f96',  provider: '智谱AI' },
+  { value: 'glm-5-turbo', label: 'GLM-5-Turbo',   desc: '极速推理 · 低延迟首选',      tag: '快速',  tagColor: '#52c41a',  provider: '智谱AI' },
+  { value: 'glm-4.7',     label: 'GLM-4.7',       desc: '增强旗舰 · 逻辑推理优',      tag: '旗舰',  tagColor: '#722ed1',  provider: '智谱AI' },
+  { value: 'glm-4.6',     label: 'GLM-4.6',       desc: '综合能力强 · 推荐选择',      tag: '推荐',  tagColor: '#1677ff',  provider: '智谱AI' },
+  { value: 'glm-4.5',     label: 'GLM-4.5',       desc: '通用均衡 · 稳定可靠',          tag: '均衡',  tagColor: '#13c2c2',  provider: '智谱AI' },
+  { value: 'glm-4.5-air', label: 'GLM-4.5-Air',   desc: '轻量高效 · 快速响应',          tag: '轻量',  tagColor: '#8c8c8c',  provider: '智谱AI' },
+  // 阿里通义千问 系列
+  { value: 'qwen3.6-max-preview', label: 'Qwen3.6 Max',        desc: 'Qwen3.6旗舰 · 最新最强',     tag: 'NEW',   tagColor: '#fa8c16',  provider: '通义千问' },
+  { value: 'qwen3.6-plus',        label: 'Qwen3.6 Plus',       desc: 'Qwen3.6高性能 · 复杂任务',   tag: 'NEW',   tagColor: '#fa8c16',  provider: '通义千问' },
+  { value: 'qwen3.6-flash',       label: 'Qwen3.6 Flash',      desc: 'Qwen3.6极速 · 低成本',       tag: 'NEW',   tagColor: '#fa8c16',  provider: '通义千问' },
+  { value: 'qwen3.6-27b',         label: 'Qwen3.6 27B',        desc: 'Qwen3.6轻量 · 开源可部署',   tag: '开源',  tagColor: '#13c2c2',  provider: '通义千问' },
+  { value: 'qwen3-max',          label: 'Qwen3 Max',          desc: 'Qwen3旗舰 · 强大能力',       tag: '旗舰',  tagColor: '#722ed1',  provider: '通义千问' },
+  { value: 'qwen3-coder-plus',   label: 'Qwen3 Coder Plus',   desc: 'Qwen3编程增强 · 代码首选',  tag: 'CODE',  tagColor: '#1677ff',  provider: '通义千问' },
+  { value: 'qwen3-coder-flash',  label: 'Qwen3 Coder Flash',  desc: 'Qwen3编程快速 · 高效',      tag: '快速',  tagColor: '#52c41a',  provider: '通义千问' },
+  { value: 'qwq-plus',           label: 'QwQ Plus',           desc: '深度推理 · 类似R1',           tag: '思考',  tagColor: '#722ed1',  provider: '通义千问' },
+  { value: 'qwen-max',           label: 'Qwen Max',           desc: '旗舰模型 · 最强性能',       tag: '旗舰',  tagColor: '#722ed1',  provider: '通义千问' },
+  { value: 'qwen-plus',          label: 'Qwen Plus',          desc: '高性能 · 复杂任务',           tag: '强大',  tagColor: '#eb2f96',  provider: '通义千问' },
+  { value: 'qwen-turbo',         label: 'Qwen Turbo',         desc: '快速响应 · 日常任务',       tag: '快速',  tagColor: '#52c41a',  provider: '通义千问' },
+  { value: 'qwen-flash',         label: 'Qwen Flash',         desc: '极速响应 · 超低成本',       tag: '极速',  tagColor: '#fa8c16',  provider: '通义千问' },
+  { value: 'qwen-coder-plus',    label: 'Qwen Coder Plus',    desc: '代码专家 · 编程首选',       tag: 'CODE',  tagColor: '#1677ff',  provider: '通义千问' },
+  { value: 'qwen-long',          label: 'Qwen Long',          desc: '超长上下文 · 文档分析',   tag: '长文本', tagColor: '#13c2c2',  provider: '通义千问' },
+  { value: 'qwen-math-plus',     label: 'Qwen Math Plus',     desc: '数学推理 · 逻辑专精',       tag: '数学',  tagColor: '#f5222d',  provider: '通义千问' },
+  // Kimi / Moonshot 系列
+  { value: 'kimi-k2.6',            label: 'Kimi K2.6',            desc: 'Moonshot旗舰 · 长上下文',    tag: 'NEW',   tagColor: '#fa8c16',  provider: 'Kimi' },
+  // MiniMax 系列
+  { value: 'MiniMax-M2.7',         label: 'MiniMax M2.7',         desc: 'MiniMax旗舰 · 多模态',       tag: 'NEW',   tagColor: '#fa8c16',  provider: 'MiniMax' },
 ];
 
 // 快捷提示词
@@ -205,7 +231,7 @@ const ChatPage: React.FC = () => {
   const [messages, setMessages]           = useState<Message[]>([]);
   const [inputValue, setInputValue]       = useState('');
   const [loading, setLoading]             = useState(false);
-  const [selectedModel, setSelectedModel] = useState('glm-4.6');
+  const [selectedModel, setSelectedModel] = useState('glm-5.1');
   const [copiedId, setCopiedId]           = useState<string | null>(null);
   const [uploadedFile, setUploadedFile]   = useState<File | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
@@ -218,7 +244,8 @@ const ChatPage: React.FC = () => {
   const supportsThinking = () => {
     const m = selectedModel.toLowerCase();
     return m.startsWith('glm-4.5') || m.startsWith('glm-4.6') || m.startsWith('glm-4.7') ||
-           m.startsWith('glm-5') || m === 'deepseek-v4-pro';
+           m.startsWith('glm-5') || m === 'deepseek-v4-pro' || m === 'deepseek-reasoner' ||
+           m === 'qwq-plus' || m.startsWith('gpt-5') || m.startsWith('claude-opus');
   };
   // 判断当前模型是否支持联网搜索
   const supportsWebSearch = () => selectedModel.toLowerCase().startsWith('glm');
@@ -617,12 +644,69 @@ const ChatPage: React.FC = () => {
                   </Select.Option>
                 ))}
               </Select.OptGroup>
-              {/* 灵龙AI 分组 */}
-              <Select.OptGroup label="灵龙AI (CodeFlow)">
-                {MODEL_LIST.filter(m => m.provider === '灵龙AI').map(m => (
+              {/* CodeFlow / 灵龙AI 分组 */}
+              <Select.OptGroup label="CodeFlow (灵龙AI)">
+                {MODEL_LIST.filter(m => m.provider === 'CodeFlow').map(m => (
                   <Select.Option key={m.value} value={m.value} label={
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <ThunderboltOutlined style={{ color: m.tagColor }} />
+                      {m.label}
+                    </span>
+                  }>
+                    <div className="model-option">
+                      <div className="model-option-left">
+                        <span className="model-option-name">{m.label}</span>
+                        <span className="model-option-desc">{m.desc}</span>
+                      </div>
+                      <Tag color={m.tagColor} style={{ fontSize: 10 }}>{m.tag}</Tag>
+                    </div>
+                  </Select.Option>
+                ))}
+              </Select.OptGroup>
+              {/* 通义千问 分组 */}
+              <Select.OptGroup label="通义千问 (Qwen)">
+                {MODEL_LIST.filter(m => m.provider === '通义千问').map(m => (
+                  <Select.Option key={m.value} value={m.value} label={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <ApiOutlined style={{ color: m.tagColor }} />
+                      {m.label}
+                    </span>
+                  }>
+                    <div className="model-option">
+                      <div className="model-option-left">
+                        <span className="model-option-name">{m.label}</span>
+                        <span className="model-option-desc">{m.desc}</span>
+                      </div>
+                      <Tag color={m.tagColor} style={{ fontSize: 10 }}>{m.tag}</Tag>
+                    </div>
+                  </Select.Option>
+                ))}
+              </Select.OptGroup>
+              {/* Kimi 分组 */}
+              <Select.OptGroup label="Kimi (Moonshot)">
+                {MODEL_LIST.filter(m => m.provider === 'Kimi').map(m => (
+                  <Select.Option key={m.value} value={m.value} label={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <ApiOutlined style={{ color: m.tagColor }} />
+                      {m.label}
+                    </span>
+                  }>
+                    <div className="model-option">
+                      <div className="model-option-left">
+                        <span className="model-option-name">{m.label}</span>
+                        <span className="model-option-desc">{m.desc}</span>
+                      </div>
+                      <Tag color={m.tagColor} style={{ fontSize: 10 }}>{m.tag}</Tag>
+                    </div>
+                  </Select.Option>
+                ))}
+              </Select.OptGroup>
+              {/* MiniMax 分组 */}
+              <Select.OptGroup label="MiniMax">
+                {MODEL_LIST.filter(m => m.provider === 'MiniMax').map(m => (
+                  <Select.Option key={m.value} value={m.value} label={
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <ApiOutlined style={{ color: m.tagColor }} />
                       {m.label}
                     </span>
                   }>

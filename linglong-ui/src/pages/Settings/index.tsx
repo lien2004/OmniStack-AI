@@ -51,7 +51,7 @@ const VENDOR_PRESETS: Record<string, { label: string; baseUrl: string; models: s
   moonshot:  { label: 'Kimi (月之暗面)', baseUrl: 'https://api.moonshot.cn/v1', icon: '🌙', color: '#17aeae',
                models: ['moonshot-v1-128k', 'moonshot-v1-32k', 'moonshot-v1-8k'] },
   aliyun:    { label: '阿里通义千问', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', icon: '☁️', color: '#f97316',
-               models: ['qwen-max', 'qwen-plus', 'qwen-turbo', 'qwen-coder-plus', 'qwen-long'] },
+               models: ['qwen3-max', 'qwen3-coder-plus', 'qwen3-coder-flash', 'qwq-plus', 'qwen-max', 'qwen-plus', 'qwen-turbo', 'qwen-flash', 'qwen-coder-plus', 'qwen-long', 'qwen-math-plus'] },
   doubao:    { label: '字节豆包', baseUrl: 'https://ark.cn-beijing.volces.com/api/v3', icon: '🫘', color: '#3b82f6',
                models: ['doubao-pro-32k', 'doubao-pro-4k', 'doubao-lite-32k'] },
   baidu:     { label: '百度文心一言', baseUrl: 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat', icon: '🌊', color: '#2563eb',
@@ -59,7 +59,7 @@ const VENDOR_PRESETS: Record<string, { label: string; baseUrl: string; models: s
   ollama:    { label: 'Ollama (本地)', baseUrl: 'http://localhost:11434/v1', icon: '💻', color: '#52c41a',
                models: ['llama3', 'llama3.1', 'mistral', 'codellama', 'qwen2', 'gemma2'] },
   codeflow:  { label: 'CodeFlow / 灵龙AI', baseUrl: 'https://codeflow.asia/v1', icon: '🚀', color: '#8b5cf6',
-               models: ['gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini', 'claude-opus-4-7', 'claude-sonnet-4-6'] },
+               models: ['gpt-5.5', 'gpt-5.5-openai-compact', 'gpt-5.4', 'gpt-5.4-mini', 'gpt-5.4-openai-compact', 'gpt-5.3-codex', 'gpt-5.3-codex-openai-compact', 'gpt-5.3-codex-spark', 'gpt-5.2', 'gpt-5.2-openai-compact', 'claude-opus-4-7', 'claude-sonnet-4-6', 'claude-opus-4-6', 'claude-haiku-4-5-20251001'] },
   custom:    { label: '自建模型', baseUrl: '', icon: '⚙️', color: '#8c8c8c', models: [] },
 }
 
@@ -151,6 +151,99 @@ function Settings() {
           message.success('已自动添加阿里通义千问配置')
         } catch {
           // 本地模式：直接加入列表
+          providers = [...providers, newProvider]
+        }
+      }
+
+      // 自动初始化 DeepSeek（如未配置）
+      const hasDeepseek = providers.some((p: any) => p.vendor === 'deepseek')
+      if (!hasDeepseek) {
+        const deepseekPreset = VENDOR_PRESETS.deepseek
+        const newProvider = {
+          id: (Date.now() + 1).toString(),
+          name: deepseekPreset.label,
+          vendor: 'deepseek',
+          providerType: 'commercial',
+          baseUrl: deepseekPreset.baseUrl,
+          apiKey: 'sk-84428d84cf3141f9b23deb2707209a0c',
+          defaultModel: 'deepseek-v4-pro',
+          customModels: deepseekPreset.models,
+          temperature: 0.7,
+          maxTokens: 4000,
+          topP: 1.0,
+          contextLength: 64000,
+          streamEnabled: true,
+          timeoutSeconds: 120,
+          isDefault: false,
+          enabled: true,
+        }
+        try {
+          await saveLlmProvider(newProvider)
+          providers = [...providers, newProvider]
+          message.success('已自动添加 DeepSeek 配置')
+        } catch {
+          providers = [...providers, newProvider]
+        }
+      }
+
+      // 自动初始化智谱AI（如未配置）
+      const hasZhipu = providers.some((p: any) => p.vendor === 'zhipu')
+      if (!hasZhipu) {
+        const zhipuPreset = VENDOR_PRESETS.zhipu
+        const newProvider = {
+          id: (Date.now() + 2).toString(),
+          name: zhipuPreset.label,
+          vendor: 'zhipu',
+          providerType: 'commercial',
+          baseUrl: zhipuPreset.baseUrl,
+          apiKey: '3fdfff7268f548058f57baa43dce3e5e.KAUNLL8CTCzXj5uv',
+          defaultModel: 'glm-5.1',
+          customModels: zhipuPreset.models,
+          temperature: 0.7,
+          maxTokens: 4000,
+          topP: 1.0,
+          contextLength: 128000,
+          streamEnabled: true,
+          timeoutSeconds: 120,
+          isDefault: false,
+          enabled: true,
+        }
+        try {
+          await saveLlmProvider(newProvider)
+          providers = [...providers, newProvider]
+          message.success('已自动添加智谱AI配置')
+        } catch {
+          providers = [...providers, newProvider]
+        }
+      }
+
+      // 自动初始化 CodeFlow / 灵龙AI（如未配置）
+      const hasCodeflow = providers.some((p: any) => p.vendor === 'codeflow')
+      if (!hasCodeflow) {
+        const codeflowPreset = VENDOR_PRESETS.codeflow
+        const newProvider = {
+          id: (Date.now() + 3).toString(),
+          name: codeflowPreset.label,
+          vendor: 'codeflow',
+          providerType: 'commercial',
+          baseUrl: codeflowPreset.baseUrl,
+          apiKey: 'sk-kzvYOJLDIKo50ZF9H4t2DIzWkZGOTLS6TMMI7XVCeXmu5ZVj',
+          defaultModel: 'gpt-5.5',
+          customModels: codeflowPreset.models,
+          temperature: 0.7,
+          maxTokens: 4000,
+          topP: 1.0,
+          contextLength: 128000,
+          streamEnabled: true,
+          timeoutSeconds: 120,
+          isDefault: false,
+          enabled: true,
+        }
+        try {
+          await saveLlmProvider(newProvider)
+          providers = [...providers, newProvider]
+          message.success('已自动添加 CodeFlow 配置')
+        } catch {
           providers = [...providers, newProvider]
         }
       }

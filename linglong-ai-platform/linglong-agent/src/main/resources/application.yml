@@ -33,7 +33,7 @@ spring:
       api-key: your-api-key
       chat:
         options:
-          model: gpt-5.4-mini
+          model: gpt-5.5
 
 # LLM服务配置（调用llm-core服务）
 llm:

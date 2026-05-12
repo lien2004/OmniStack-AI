@@ -22,9 +22,10 @@ import java.util.concurrent.Executors;
 /**
  * 多模型对话服务
  * 支持模型路由：
- *   - GLM 系列         → 智谱AI  (https://open.bigmodel.cn)
+ *   - GLM 系列          → 智谱AI  (https://open.bigmodel.cn)
  *   - gpt/linglong/claude → CodeFlow/灵龙AI (OpenAI 兼容接口)
- *   - deepseek 系列    → DeepSeek (https://api.deepseek.com, 支持思考模式)
+ *   - deepseek 系列     → DeepSeek (https://api.deepseek.com, 支持思考模式)
+ *   - qwen/qwq 系列     → 通义千问 (https://dashscope.aliyuncs.com, OpenAI 兼容接口)
  * 同时支持同步和 SSE 流式输出
  */
 @Service
@@ -42,7 +43,7 @@ public class MultiModelChatService {
     private String bailianBaseUrl;
     @Value("${bailian.api-key:}")
     private String bailianApiKey;
-    @Value("${bailian.model:gpt-5.4-mini}")
+    @Value("${bailian.model:gpt-5.5}")
     private String bailianDefaultModel;
 
     // --- DeepSeek ---
@@ -54,6 +55,12 @@ public class MultiModelChatService {
     private boolean deepseekThinkingEnabled;
     @Value("${deepseek.reasoning-effort:high}")
     private String deepseekReasoningEffort;
+
+    // --- 通义千问/阿里云 ---
+    @Value("${aliyun.base-url:https://dashscope.aliyuncs.com/compatible-mode/v1}")
+    private String aliyunBaseUrl;
+    @Value("${aliyun.api-key:}")
+    private String aliyunApiKey;
 
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
@@ -235,12 +242,14 @@ public class MultiModelChatService {
     private String resolveUrl(String model) {
         if (isZhipuModel(model)) return ZHIPU_URL;
         if (isDeepSeekModel(model)) return deepseekBaseUrl + "/chat/completions";
+        if (isAliyunModel(model)) return aliyunBaseUrl + "/chat/completions";
         return bailianBaseUrl + "/chat/completions";
     }
 
     private String resolveApiKey(String model) {
         if (isZhipuModel(model)) return zhipuApiKey;
         if (isDeepSeekModel(model)) return deepseekApiKey;
+        if (isAliyunModel(model)) return aliyunApiKey;
         return bailianApiKey;
     }
 
@@ -260,6 +269,13 @@ public class MultiModelChatService {
     public boolean isDeepSeekModel(String model) {
         if (model == null || model.isBlank()) return false;
         return model.toLowerCase().startsWith("deepseek");
+    }
+
+    public boolean isAliyunModel(String model) {
+        if (model == null || model.isBlank()) return false;
+        String lower = model.toLowerCase();
+        return lower.startsWith("qwen") || lower.startsWith("qwq")
+                || lower.startsWith("kimi") || lower.startsWith("minimax");
     }
 
     private Map<String, Object> buildRequestBody(List<Map<String, Object>> messages,
