@@ -127,15 +127,63 @@ export const logoutApi = async (): Promise<void> => {
   }
 }
 
+// ── 项目中心 API ──────────────────────────────────────────────────────────
+
 // 获取项目列表
-export const getProjects = async () => {
-  const response = await api.get('/v1/projects')
+export const getProjects = async (params?: { userId?: string; status?: string; keyword?: string }) => {
+  const response = await api.get('/agent/projects', { params })
+  return response
+}
+
+// 获取项目详情
+export const getProjectDetail = async (id: string) => {
+  const response = await api.get(`/agent/projects/${id}`)
   return response
 }
 
 // 创建项目
-export const createProject = async (data: any) => {
-  const response = await api.post('/v1/projects', data)
+export const createProject = async (data: {
+  name: string
+  description?: string
+  techStack?: string
+  architectureType?: string
+  model?: string
+  requirement?: string
+  userId?: string
+}) => {
+  const response = await api.post('/agent/projects', data)
+  return response
+}
+
+// 从工作流保存项目（CodeFlow完成后自动调用）
+export const saveProjectFromWorkflow = async (data: {
+  workflowId: string
+  name?: string
+  requirement?: string
+  model?: string
+  userId?: string
+  codeFiles?: { path: string; content: string; lang: string }[]
+  workflowOutput?: Record<string, any>
+}) => {
+  const response = await api.post('/agent/projects/from-workflow', data)
+  return response
+}
+
+// 绑定工作流到项目（项目中心启动AI开发）
+export const bindWorkflowToProject = async (projectId: string, workflowId: string) => {
+  const response = await api.post(`/agent/projects/${projectId}/bind-workflow`, { workflowId })
+  return response
+}
+
+// 更新项目
+export const updateProject = async (id: string, data: Record<string, any>) => {
+  const response = await api.put(`/agent/projects/${id}`, data)
+  return response
+}
+
+// 删除项目
+export const deleteProject = async (id: string) => {
+  const response = await api.delete(`/agent/projects/${id}`)
   return response
 }
 

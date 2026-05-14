@@ -82,7 +82,7 @@ const NAV_GROUPS: NavGroup[] = [
         icon: ThunderboltOutlined,
         iconColor: '#f97316',
         iconBg: 'rgba(249,115,22,0.15)',
-        title: '全AI开发',
+        title: 'Agent智能开发',
         subtitle: '一站式AI驱动软件开发工作流',
         tag: 'New',
         tagColor: '#f97316',
@@ -145,7 +145,7 @@ const routeNameMap: Record<string, string> = {
   '/chat': 'AI 对话助手',
   '/knowledge': '知识库管理',
   '/agents': '智能体中心',
-  '/codeflow': '全AI开发',
+  '/codeflow': 'Agent智能开发',
   '/mcp': 'MCP Hub',
   '/projects': '项目中心',
   '/settings': '模型管理',
@@ -264,7 +264,9 @@ function Layout() {
       >
         {/* Logo */}
         <div className={`logo${collapsed ? ' logo-collapsed' : ''}`}>
-          <div className="logo-icon-box">🐉</div>
+          <div className="logo-icon-box">
+            <img src="src/img/重工AI.png" alt="灵龙AI Logo" className="logo-img" />
+          </div>
           {!collapsed && <div className="logo-text">灵龙<span className="logo-text-ai">AI</span></div>}
         </div>
 

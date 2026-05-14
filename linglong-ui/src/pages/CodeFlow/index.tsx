@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   Button, Input, Select, message, Spin, Tag, Space, Empty,
   Typography, Badge, Card, Divider, Upload, Tooltip,
@@ -12,8 +13,10 @@ import {
   ArrowRightOutlined, FolderOutlined, FileOutlined,
   DownloadOutlined, FolderOpenOutlined, FileZipOutlined,
   InboxOutlined, PaperClipOutlined, DeleteOutlined,
+  FolderViewOutlined,
 } from '@ant-design/icons'
 import axios from '@/services/api'
+import { saveProjectFromWorkflow, bindWorkflowToProject } from '@/services/api'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 import { getLlmProviders } from '@/services/settings'
@@ -206,8 +209,18 @@ interface UploadedFile {
 // ── 组件 ──────────────────────────────────────────────────────────────────
 
 function CodeFlowPage() {
-  const [requirement, setRequirement] = useState('')
-  const [selectedModel, setSelectedModel] = useState('gpt-5.5')
+  const location = useLocation()
+  const navigate = useNavigate()
+  // 从项目中心跳转过来的参数
+  const locationState = location.state as {
+    projectId?: string
+    requirement?: string
+    model?: string
+    projectName?: string
+  } | null
+
+  const [requirement, setRequirement] = useState(locationState?.requirement || '')
+  const [selectedModel, setSelectedModel] = useState(locationState?.model || 'gpt-5.5')
   const [running, setRunning] = useState(false)
   const [workflowId, setWorkflowId] = useState<string | null>(null)
   const [stepStates, setStepStates] = useState<Record<string, StepState>>({})
@@ -216,6 +229,7 @@ function CodeFlowPage() {
   const [elapsedTime, setElapsedTime] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const abortRef = useRef(false)
+  const projectSavedRef = useRef(false) // 标记是否已保存到项目中心
 
   // 代码文件导出相关状态
   const [codeFiles, setCodeFiles] = useState<{ path: string; content: string; lang: string }[]>([])
@@ -225,6 +239,8 @@ function CodeFlowPage() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   // 动态模型供应商（从系统已配置的 LLM 供应商加载）
   const [dynamicProviders, setDynamicProviders] = useState<any[]>([])
+  // 保存到项目中心的状态
+  const [savedProjectId, setSavedProjectId] = useState<string | null>(locationState?.projectId || null)
 
   // 计时器
   useEffect(() => {
@@ -367,6 +383,8 @@ function CodeFlowPage() {
     setCodeFiles([])
     setSelectedFilePath(null)
     setUploadedFiles([])
+    projectSavedRef.current = false
+    setSavedProjectId(null)
   }
 
   // ── 代码文件解析 ─────────────────────────────────────────────────────────
@@ -437,6 +455,40 @@ function CodeFlowPage() {
     }
   }, [globalStatus, stepStates, collectAllOutputs, parseCodeBlocks])
 
+  // 工作流完成后自动保存到项目中心
+  useEffect(() => {
+    if (globalStatus === 'completed' && workflowId && !projectSavedRef.current && codeFiles.length > 0) {
+      projectSavedRef.current = true
+      // 收集工作流输出
+      const workflowOutput: Record<string, any> = {}
+      WORKFLOW_STEPS.forEach(step => {
+        const s = stepStates[step.key]
+        if (s?.output) workflowOutput[step.key] = s.output
+      })
+
+      saveProjectFromWorkflow({
+        workflowId,
+        name: locationState?.projectName || undefined,
+        requirement,
+        model: selectedModel,
+        codeFiles,
+        workflowOutput,
+      }).then(res => {
+        if (res.data?.success) {
+          const project = res.data.data
+          setSavedProjectId(project.id)
+          message.success('项目已自动保存到项目中心')
+          // 如果是从项目中心跳转来的，绑定工作流
+          if (locationState?.projectId) {
+            bindWorkflowToProject(locationState.projectId, workflowId).catch(() => {})
+          }
+        }
+      }).catch(() => {
+        message.warning('自动保存项目失败，请手动保存')
+      })
+    }
+  }, [globalStatus, workflowId, codeFiles])
+
   // ── 下载功能 ─────────────────────────────────────────────────────────────
 
   const downloadSingleFile = (file: { path: string; content: string }) => {
@@ -504,13 +556,20 @@ function CodeFlowPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
           <div style={{ fontSize: 11, fontWeight: 600, color: '#8c8c8c', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>AI Studio</div>
-          <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: '#1a1a2e' }}>全AI智能开发</h1>
-          <p style={{ color: '#8c8c8c', margin: '6px 0 0', fontSize: 14 }}>一站式AI驱动软件开发：需求分析 → 领域建模 → 架构设计 → 代码生成 → 代码审查 → 测试生成</p>
+          <h1 style={{ margin: 0, fontSize: 28, fontWeight: 700, color: '#1a1a2e' }}>Agent智能开发</h1>
+          <p style={{ color: '#8c8c8c', margin: '6px 0 0', fontSize: 14 }}>Agent驱动软件开发：需求分析 → 领域建模 → 架构设计 → 代码生成 → 代码审查 → 测试生成</p>
         </div>
         {globalStatus === 'completed' && (
-          <Button icon={<ReloadOutlined />} size="large" style={{ borderRadius: 8 }} onClick={resetWorkflow}>
-            重新开始
-          </Button>
+          <Space>
+            {savedProjectId && (
+              <Button icon={<FolderViewOutlined />} size="large" style={{ borderRadius: 8 }} onClick={() => navigate(`/projects/${savedProjectId}`)}>
+                查看项目
+              </Button>
+            )}
+            <Button icon={<ReloadOutlined />} size="large" style={{ borderRadius: 8 }} onClick={resetWorkflow}>
+              重新开始
+            </Button>
+          </Space>
         )}
       </div>
 

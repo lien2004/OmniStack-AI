@@ -50,14 +50,24 @@ const Login = () => {
     <div className="login-container-split">
       {/* 左侧：品牌区 */}
       <div className="login-left">
+        {/* AI 科技流动背景 */}
+        <div className="bg-grid" />
+        <div className="floating-orb orb-1" />
+        <div className="floating-orb orb-2" />
+        <div className="floating-orb orb-3" />
+        <div className="floating-orb orb-4" />
+        <div className="floating-orb orb-5" />
+        <div className="floating-line line-1" />
+        <div className="floating-line line-2" />
+        <div className="floating-line line-3" />
         <div className="brand-content">
           <div className="brand-logo">
             <span className="brand-logo-icon">
-              <img src="src/img/LLM.png" alt="灵龙AI Logo" />
+              <img src="src/img/重工AI.png" alt="灵龙AI Logo" />
             </span>
             <div className="brand-title-wrapper">
               <span className="brand-title-main">灵龙AI</span>
-              <span className="brand-title-sub">PRIME INTELLIGENCE SYSTEM</span>
+              <span className="brand-title-sub">LINGLONG AI</span>
             </div>
           </div>
 
@@ -114,7 +124,7 @@ const Login = () => {
         <div className="login-form-container">
           <div className="form-header">
             <h2>欢迎回来</h2>
-            <p>登录灵龙AI+智能开发平台</p>
+            <p>登录灵龙AI智能平台</p>
           </div>
 
           {/* 角色选择（与注册页面一致的样式） */}

@@ -289,7 +289,7 @@ function AgentCenter() {
         </div>
         <Space>
           <Button type="primary" size="large" icon={<ThunderboltOutlined />} style={{ borderRadius: 8 }} onClick={() => navigate('/codeflow')}>
-            全AI开发
+            Agent智能开发
           </Button>
           <Button size="large" icon={<PlusOutlined />} style={{ borderRadius: 8 }}>
             新建智能体
@@ -532,7 +532,7 @@ function AgentCenter() {
 
       {/* Workflow Modal */}
       <Modal
-        title={<span><ThunderboltOutlined style={{ marginRight: 8, color: '#1677ff' }} />全AI智能开发工作流</span>}
+        title={<span><ThunderboltOutlined style={{ marginRight: 8, color: '#1677ff' }} />Agent智能开发工作流</span>}
         open={workflowModalVisible}
         onCancel={() => setWorkflowModalVisible(false)}
         width={900}

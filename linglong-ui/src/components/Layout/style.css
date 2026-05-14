@@ -57,13 +57,19 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #1677ff, #36cfc9);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  box-shadow: 0 4px 14px rgba(22, 119, 255, 0.4);
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.logo-icon-box .logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
 }
 
 .logo-text {

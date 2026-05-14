@@ -9,7 +9,7 @@ import {
   CopyOutlined, LikeOutlined, DislikeOutlined,
   ApiOutlined, DatabaseOutlined, CheckOutlined, DeleteOutlined,
   PaperClipOutlined, FileTextOutlined, CloseCircleOutlined, DownloadOutlined,
-  SearchOutlined, BulbOutlined, GlobalOutlined,
+  SearchOutlined, BulbOutlined, GlobalOutlined, ToolOutlined,
 } from '@ant-design/icons';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
@@ -239,6 +239,32 @@ const ChatPage: React.FC = () => {
   const [enableThinking, setEnableThinking] = useState(false);
   const [enableWebSearch, setEnableWebSearch] = useState(false);
   const [streamingMsgId, setStreamingMsgId] = useState<string | null>(null);
+  const [mcpToolsOpen, setMcpToolsOpen] = useState(false);
+
+  // MCP工具列表（对话中快速调用）
+  const MCP_TOOLS = [
+    { key: 'weather', emoji: '🌤️', name: '天气查询', desc: '查询城市天气预报' },
+    { key: 'database', emoji: '🗄️', name: '数据库查询', desc: '执行SQL语句' },
+    { key: 'readfile', emoji: '📄', name: '文档读取', desc: '读取文件内容' },
+    { key: 'writecode', emoji: '✏️', name: '代码写入', desc: '写入代码到文件' },
+    { key: 'git', emoji: '📂', name: 'Git操作', desc: '版本控制操作' },
+    { key: 'docker', emoji: '🐳', name: 'Docker', desc: '容器管理' },
+    { key: 'diagram', emoji: '📊', name: '图表生成', desc: 'AI生成架构图' },
+  ];
+
+  const handleMcpToolSelect = (toolKey: string) => {
+    setMcpToolsOpen(false);
+    const toolPrompts: Record<string, string> = {
+      weather: '请帮我查询天气，城市：',
+      database: '请帮我执行SQL查询：',
+      readfile: '请帮我读取文件内容，路径：',
+      writecode: '请帮我写入代码到文件，需求：',
+      git: '请帮我执行Git操作：',
+      docker: '请帮我执行Docker操作：',
+      diagram: '请帮我生成一个图表：',
+    };
+    setInputValue(toolPrompts[toolKey] || '');
+  };
 
   // 判断当前模型是否支持深度思考
   const supportsThinking = () => {
@@ -905,6 +931,50 @@ const ChatPage: React.FC = () => {
                 <PaperClipOutlined />
               </button>
             </Tooltip>
+
+            {/* MCP工具快捷入口 */}
+            <div style={{ position: 'relative' }}>
+              <Tooltip title="调用MCP工具">
+                <button
+                  className="upload-file-btn"
+                  onClick={() => setMcpToolsOpen(!mcpToolsOpen)}
+                  disabled={loading}
+                  style={{ color: mcpToolsOpen ? '#1677ff' : undefined }}
+                >
+                  <ToolOutlined />
+                </button>
+              </Tooltip>
+              {mcpToolsOpen && (
+                <div style={{
+                  position: 'absolute', bottom: '100%', left: 0, marginBottom: 8,
+                  background: '#fff', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                  border: '1px solid #f0f0f0', padding: '8px', minWidth: 220, zIndex: 100,
+                }}>
+                  <div style={{ padding: '6px 12px 10px', borderBottom: '1px solid #f5f5f5', marginBottom: 4 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#595959' }}>🔧 MCP 工具</span>
+                  </div>
+                  {MCP_TOOLS.map(tool => (
+                    <div
+                      key={tool.key}
+                      onClick={() => handleMcpToolSelect(tool.key)}
+                      style={{
+                        padding: '8px 12px', borderRadius: 8, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f5f5f5')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <span style={{ fontSize: 18 }}>{tool.emoji}</span>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{tool.name}</div>
+                        <div style={{ fontSize: 11, color: '#8c8c8c' }}>{tool.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <TextArea
               value={inputValue}
