@@ -4,6 +4,7 @@ import { UserOutlined, LockOutlined, EyeInvisibleOutlined, EyeOutlined } from '@
 import { useNavigate } from 'react-router-dom'
 import { login } from '../../services/api'
 import { useUserStore } from '../../stores/userStore'
+import logoImg from '../../img/重工AI.png'
 import './index.css'
 
 const Login = () => {
@@ -63,7 +64,7 @@ const Login = () => {
         <div className="brand-content">
           <div className="brand-logo">
             <span className="brand-logo-icon">
-              <img src="src/img/重工AI.png" alt="灵龙AI Logo" />
+              <img src={logoImg} alt="灵龙AI Logo" />
             </span>
             <div className="brand-title-wrapper">
               <span className="brand-title-main">灵龙AI</span>

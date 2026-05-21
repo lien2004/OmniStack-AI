@@ -3,6 +3,7 @@ import { Form, Input, Button, message } from 'antd'
 import { UserOutlined, LockOutlined, MobileOutlined, SafetyCertificateOutlined, EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { register, sendSmsCode } from '../../services/api'
+import logoImg from '../../img/重工AI.png'
 import './index.css'
 
 const Register = () => {
@@ -86,7 +87,7 @@ const Register = () => {
         <div className="brand-content">
           <div className="brand-logo">
             <span className="brand-logo-icon">
-              <img src="src/img/重工AI.png" alt="灵龙AI Logo" />
+              <img src={logoImg} alt="灵龙AI Logo" />
             </span>
             <div className="brand-title-wrapper">
               <span className="brand-title-main">灵龙AI</span>

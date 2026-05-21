@@ -20,6 +20,7 @@ import {
   TeamOutlined,
 } from '@ant-design/icons'
 import { useUserStore } from '../../stores/userStore'
+import logoImg from '../../img/重工AI.png'
 import './style.css'
 
 const { Header, Sider, Content } = AntLayout
@@ -265,7 +266,7 @@ function Layout() {
         {/* Logo */}
         <div className={`logo${collapsed ? ' logo-collapsed' : ''}`}>
           <div className="logo-icon-box">
-            <img src="src/img/重工AI.png" alt="灵龙AI Logo" className="logo-img" />
+            <img src={logoImg} alt="灵龙AI Logo" className="logo-img" />
           </div>
           {!collapsed && <div className="logo-text">灵龙<span className="logo-text-ai">AI</span></div>}
         </div>

@@ -62,14 +62,14 @@ spring:
         # ==========================================
         # 4. MCP 服务
         # 端口: 8083
-        # 匹配: /api/v1/mcp/**
+        # 匹配: /api/mcp/**
+        # 注意: MCPController使用@RequestMapping("/api/mcp")，
+        #       路径已包含/api前缀，不需要StripPrefix
         # ==========================================
         - id: linglong-mcp
           uri: http://localhost:8083
           predicates:
-            - Path=/api/v1/mcp/**
-          filters:
-            - StripPrefix=1
+            - Path=/api/mcp/**
 
       # 跨域配置
       globalcors:
