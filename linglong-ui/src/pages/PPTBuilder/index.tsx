@@ -339,7 +339,7 @@ const PPTBuilder: React.FC = () => {
             </Text>
           </div>
         </div>
-        <Tag color="purple">GPT-4o</Tag>
+        <Tag color="purple">GPT-5.5</Tag>
       </div>
 
       <div className="ppt-body">

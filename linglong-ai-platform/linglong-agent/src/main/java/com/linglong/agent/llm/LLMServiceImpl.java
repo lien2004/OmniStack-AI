@@ -1,5 +1,6 @@
 package com.linglong.agent.llm;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -16,17 +17,27 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * LLM服务实现 - 基于LangChain4j OpenAI兼容客户端
- * 使用CodeFlow/灵龙AI的OpenAI兼容接口
+ * LLM服务实现 - 基于LangChain4j + 原生 HTTP SSE
+ * 默认模型走LangChain4j, 非标模型名(如gpt-5.4-mini/gpt-5.5等)
+ * 通过原生 HTTP SSE 直连 CodeFlow API, 避免 jtokkit 不识别的问题。
  */
 @Service
 public class LLMServiceImpl implements LLMService {
 
     private static final Logger log = LoggerFactory.getLogger(LLMServiceImpl.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Value("${bailian.base-url:https://codeflow.asia/v1}")
     private String baseUrl;
@@ -34,7 +45,7 @@ public class LLMServiceImpl implements LLMService {
     @Value("${bailian.api-key}")
     private String apiKey;
 
-    @Value("${bailian.model:gpt-4o}")
+    @Value("${bailian.model:gpt-5.4-mini}")
     private String model;
 
     @Value("${bailian.temperature:0.7}")
@@ -48,37 +59,29 @@ public class LLMServiceImpl implements LLMService {
 
     @PostConstruct
     public void init() {
-        log.info("初始化LangChain4j OpenAI兼容客户端: baseUrl={}, model={}", baseUrl, model);
+        log.info("初始化LLM: baseUrl={}, model={}", baseUrl, model);
 
         this.chatModel = OpenAiChatModel.builder()
-                .baseUrl(baseUrl)
-                .apiKey(apiKey)
-                .modelName(model)
-                .temperature(temperature)
-                .maxTokens(maxTokens)
+                .baseUrl(baseUrl).apiKey(apiKey)
+                .modelName(model).temperature(temperature).maxTokens(maxTokens)
                 .timeout(Duration.ofSeconds(120))
                 .build();
 
         this.streamingChatModel = OpenAiStreamingChatModel.builder()
-                .baseUrl(baseUrl)
-                .apiKey(apiKey)
-                .modelName(model)
-                .temperature(temperature)
-                .maxTokens(maxTokens)
+                .baseUrl(baseUrl).apiKey(apiKey)
+                .modelName(model).temperature(temperature).maxTokens(maxTokens)
                 .build();
 
-        log.info("LangChain4j OpenAI兼容客户端初始化完成");
+        log.info("LLM初始化完成");
     }
+
+    // ==================== 同步 ====================
 
     @Override
     public String generate(String prompt) {
         try {
-            log.debug("LLM生成请求: {}", prompt.substring(0, Math.min(prompt.length(), 100)));
-            UserMessage userMessage = UserMessage.from(prompt);
-            Response<AiMessage> response = chatModel.generate(userMessage);
-            String result = response.content().text();
-            log.debug("LLM生成完成, 长度: {}", result.length());
-            return result;
+            UserMessage m = UserMessage.from(prompt);
+            return chatModel.generate(m).content().text();
         } catch (Exception e) {
             log.error("LLM生成失败", e);
             throw new RuntimeException("AI生成失败: " + e.getMessage(), e);
@@ -86,124 +89,147 @@ public class LLMServiceImpl implements LLMService {
     }
 
     @Override
-    public String generate(String systemPrompt, String userPrompt) {
-        return generate(systemPrompt, userPrompt, model);
+    public String generate(String sys, String user) {
+        return generate(sys, user, model);
     }
 
     @Override
-    public String generate(String systemPrompt, String userPrompt, String model) {
+    public String generate(String sys, String user, String model) {
         try {
-            log.debug("LLM生成请求(带systemPrompt): model={}, system={}, user={}",
-                    model,
-                    systemPrompt.substring(0, Math.min(systemPrompt.length(), 50)),
-                    userPrompt.substring(0, Math.min(userPrompt.length(), 50)));
-            SystemMessage systemMessage = SystemMessage.from(systemPrompt);
-            UserMessage userMessage = UserMessage.from(userPrompt);
-
-            final ChatLanguageModel targetModel;
-            if (!model.equals(this.model)) {
-                targetModel = OpenAiChatModel.builder()
-                        .baseUrl(baseUrl)
-                        .apiKey(apiKey)
-                        .modelName(model)
-                        .temperature(temperature)
-                        .maxTokens(maxTokens)
-                        .timeout(Duration.ofSeconds(120))
-                        .build();
-            } else {
-                targetModel = this.chatModel;
-            }
-
-            Response<AiMessage> response = targetModel.generate(List.of(systemMessage, userMessage));
-            String result = response.content().text();
-            log.debug("LLM生成完成, 长度: {}", result.length());
-            return result;
+            SystemMessage sm = SystemMessage.from(sys);
+            UserMessage um = UserMessage.from(user);
+            ChatLanguageModel target = model.equals(this.model) ? chatModel
+                    : OpenAiChatModel.builder()
+                        .baseUrl(baseUrl).apiKey(apiKey)
+                        .modelName(model).temperature(temperature).maxTokens(maxTokens)
+                        .timeout(Duration.ofSeconds(120)).build();
+            return target.generate(List.of(sm, um)).content().text();
         } catch (Exception e) {
             log.error("LLM生成失败", e);
             throw new RuntimeException("AI生成失败: " + e.getMessage(), e);
         }
     }
+
+    // ==================== 流式 ====================
 
     @Override
     public Flux<String> generateStream(String prompt) {
-        try {
-            log.debug("LLM流式生成请求: {}", prompt.substring(0, Math.min(prompt.length(), 100)));
-            UserMessage userMessage = UserMessage.from(prompt);
-            return Flux.create(sink -> {
-                streamingChatModel.generate(List.of(userMessage), new StreamingResponseHandler<AiMessage>() {
-                    @Override
-                    public void onNext(String token) {
-                        sink.next(token);
-                    }
-
-                    @Override
-                    public void onComplete(Response<AiMessage> response) {
-                        sink.complete();
-                    }
-
-                    @Override
-                    public void onError(Throwable error) {
-                        log.error("LLM流式生成失败", error);
-                        sink.error(error);
-                    }
-                });
-            });
-        } catch (Exception e) {
-            log.error("LLM流式生成启动失败", e);
-            return Flux.error(e);
-        }
+        return doStream(model, null, prompt);
     }
 
     @Override
-    public Flux<String> generateStream(String systemPrompt, String userPrompt) {
-        return generateStream(systemPrompt, userPrompt, model);
+    public Flux<String> generateStream(String sys, String user) {
+        return doStream(model, sys, user);
     }
 
     @Override
-    public Flux<String> generateStream(String systemPrompt, String userPrompt, String model) {
-        try {
-            log.debug("LLM流式生成请求(带systemPrompt): model={}, system={}, user={}",
-                    model,
-                    systemPrompt.substring(0, Math.min(systemPrompt.length(), 50)),
-                    userPrompt.substring(0, Math.min(userPrompt.length(), 50)));
-            SystemMessage systemMessage = SystemMessage.from(systemPrompt);
-            UserMessage userMessage = UserMessage.from(userPrompt);
+    public Flux<String> generateStream(String sys, String user, String model) {
+        return doStream(model, sys, user);
+    }
 
-            final StreamingChatLanguageModel targetModel;
-            if (!model.equals(this.model)) {
-                targetModel = OpenAiStreamingChatModel.builder()
-                        .baseUrl(baseUrl)
-                        .apiKey(apiKey)
-                        .modelName(model)
-                        .temperature(temperature)
-                        .maxTokens(maxTokens)
-                        .build();
-            } else {
-                targetModel = this.streamingChatModel;
+    // ---- 核心 ----
+
+    private Flux<String> doStream(String modelName, String systemPrompt, String userPrompt) {
+        return Flux.create(sink -> {
+            Thread thread = new Thread(() -> {
+                try {
+                    rawSSEStream(modelName, systemPrompt, userPrompt,
+                            token -> sink.next(token),
+                            () -> sink.complete(),
+                            err -> sink.error(new RuntimeException(err)));
+                } catch (Exception e) {
+                    sink.error(e);
+                }
+            }, "llm-sse-" + modelName);
+            thread.setDaemon(true);
+            thread.start();
+        });
+    }
+
+    /**
+     * 原生 HTTP SSE 连接 CodeFlow API（无 jtokkit 依赖）
+     */
+    private void rawSSEStream(String modelName, String systemPrompt, String userPrompt,
+                               java.util.function.Consumer<String> onToken,
+                               Runnable onDone,
+                               java.util.function.Consumer<String> onError) {
+        HttpURLConnection conn = null;
+        try {
+            String url = baseUrl + "/chat/completions";
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("model", modelName);
+            body.put("temperature", temperature);
+            body.put("max_tokens", maxTokens);
+            body.put("stream", true);
+
+            var messages = new java.util.ArrayList<Map<String, String>>();
+            if (systemPrompt != null && !systemPrompt.isBlank()) {
+                messages.add(Map.of("role", "system", "content", systemPrompt));
+            }
+            messages.add(Map.of("role", "user", "content", userPrompt));
+            body.put("messages", messages);
+
+            String json = mapper.writeValueAsString(body);
+
+            conn = (HttpURLConnection) URI.create(url).toURL().openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
+            conn.setRequestProperty("Accept", "text/event-stream");
+            conn.setDoOutput(true);
+            conn.setConnectTimeout(30_000);
+            conn.setReadTimeout(300_000);
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(json.getBytes(StandardCharsets.UTF_8));
+                os.flush();
             }
 
-            return Flux.create(sink -> {
-                targetModel.generate(List.of(systemMessage, userMessage), new StreamingResponseHandler<AiMessage>() {
-                    @Override
-                    public void onNext(String token) {
-                        sink.next(token);
-                    }
+            int status = conn.getResponseCode();
+            if (status != 200) {
+                try (var is = conn.getErrorStream()) {
+                    String errBody = is != null ? new String(is.readAllBytes(), StandardCharsets.UTF_8) : "HTTP " + status;
+                    onError.accept(errBody);
+                }
+                return;
+            }
 
-                    @Override
-                    public void onComplete(Response<AiMessage> response) {
-                        sink.complete();
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("data: ")) {
+                        String data = line.substring(6).trim();
+                        if ("[DONE]".equals(data)) {
+                            onDone.run();
+                            return;
+                        }
+                        try {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> chunk = mapper.readValue(data, Map.class);
+                            @SuppressWarnings("unchecked")
+                            var choices = (List<Map<String, Object>>) chunk.get("choices");
+                            if (choices != null && !choices.isEmpty()) {
+                                Map<String, Object> delta = (Map<String, Object>) choices.get(0).get("delta");
+                                if (delta != null) {
+                                    Object content = delta.get("content");
+                                    if (content != null && !content.toString().isEmpty()) {
+                                        onToken.accept(content.toString());
+                                    }
+                                }
+                            }
+                        } catch (Exception ignore) {
+                            // skip unparseable chunks
+                        }
                     }
-
-                    @Override
-                    public void onError(Throwable error) {
-                        log.error("LLM流式生成失败", error);
-                        sink.error(error);
-                    }
-                });
-            });
+                }
+            }
+            onDone.run();
         } catch (Exception e) {
-            log.error("LLM流式生成启动失败", e);
-            return Flux.error(e);
+            log.error("原生SSE流式调用失败: {}", e.getMessage());
+            onError.accept(e.getMessage());
+        } finally {
+            if (conn != null) conn.disconnect();
         }
     }
 }
