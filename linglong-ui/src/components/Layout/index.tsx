@@ -212,7 +212,6 @@ const SideNav: React.FC<SideNavProps> = ({ currentPath, collapsed, isAdmin }) =>
                         </span>
                       )}
                     </div>
-                    <span className="nav-item-subtitle">{item.subtitle}</span>
                   </div>
                 )}
               </div>
