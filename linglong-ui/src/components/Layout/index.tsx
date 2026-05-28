@@ -18,7 +18,6 @@ import {
   CodeOutlined,
   CrownOutlined,
   TeamOutlined,
-  FilePptOutlined,
 } from '@ant-design/icons'
 import { useUserStore } from '../../stores/userStore'
 import logoImg from '../../img/重工AI.png'
@@ -115,16 +114,6 @@ const NAV_GROUPS: NavGroup[] = [
         title: '项目中心',
         subtitle: '微服务版本与路由管理',
       },
-      {
-        key: '/ppt',
-        icon: FilePptOutlined,
-        iconColor: '#1677ff',
-        iconBg: 'rgba(22,119,255,0.15)',
-        title: '灵龙PPT',
-        subtitle: 'AI智能生成演示文稿',
-        tag: 'New',
-        tagColor: '#1677ff',
-      },
     ],
   },
   {
@@ -163,9 +152,6 @@ const routeNameMap: Record<string, string> = {
   '/settings': '模型管理',
   '/profile': '个人中心',
   '/admin/users': '用户管理',
-  '/ppt': '灵龙PPT',
-  '/image-generation': 'AI 图片生成',
-  '/resume': 'AI 简历助手',
 }
 
 // ── 自定义侧边栏导航 ──────────────────────────────────────────────────────

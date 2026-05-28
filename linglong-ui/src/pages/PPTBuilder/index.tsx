@@ -1,12 +1,13 @@
 import { useState, useRef } from 'react'
 import {
   Button, Card, Input, Select, Tag, Typography, Space,
-  Spin, Tooltip, message as antdMessage, Steps,
+  Spin, message as antdMessage, Steps, Tooltip,
 } from 'antd'
 import {
-  ThunderboltOutlined, FilePptOutlined,
+  FilePptOutlined,
   EyeOutlined, FilePdfOutlined, Html5Outlined,
   ClearOutlined, BulbOutlined,
+  SendOutlined,
 } from '@ant-design/icons'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -19,10 +20,10 @@ const { TextArea } = Input
 const { Text, Title } = Typography
 
 const STYLE_OPTIONS = [
-  { value: 'professional', label: '商务专业', desc: '数据驱动，适合企业汇报' },
-  { value: 'education', label: '教育学术', desc: '严谨权威，适合课件学术' },
-  { value: 'creative', label: '创意设计', desc: '视觉冲击，适合品牌发布' },
-  { value: 'minimal', label: '极简风格', desc: '大字少量，适合TED演讲' },
+  { value: 'professional', label: '商务专业', desc: '数据驱动，适合企业汇报与客户提案' },
+  { value: 'education', label: '教育学术', desc: '严谨权威，适合课件与学术汇报' },
+  { value: 'creative', label: '创意设计', desc: '视觉冲击，适合品牌发布与创意提案' },
+  { value: 'minimal', label: '极简风格', desc: '大字少量，适合 TED 演讲类场景' },
 ]
 
 interface Slide {
@@ -46,10 +47,8 @@ const PPTBuilder: React.FC = () => {
     const parsed: Slide[] = []
     const lines = markdown.split('\n')
     let currentSlide: Slide | null = null
-    let inNotes = false
 
     for (const line of lines) {
-      // Match "## Page N: Title" or "## 第N页：Title"
       const pageMatch = line.match(/^##\s*(?:第\s*(\d+)\s*页[：:]\s*)?(.+)/)
       if (pageMatch) {
         if (currentSlide) parsed.push(currentSlide)
@@ -59,45 +58,20 @@ const PPTBuilder: React.FC = () => {
           bullets: [],
           notes: [],
         }
-        inNotes = false
         continue
       }
-
-      // Match H1 title (PPT title slide)
       if (line.startsWith('# ') && parsed.length === 0) {
-        currentSlide = {
-          pageNum: 1,
-          title: line.replace(/^#\s*/, '').trim(),
-          bullets: [],
-          notes: [],
-        }
+        currentSlide = { pageNum: 1, title: line.replace(/^#\s*/, '').trim(), bullets: [], notes: [] }
         continue
       }
-
       if (!currentSlide) continue
-
-      // Notes
       if (line.trim().startsWith('> ')) {
         currentSlide.notes.push(line.trim().replace(/^>\s*/, ''))
-        inNotes = true
         continue
       }
-
-      // Bullet points
-      if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
-        const bullet = line.trim().replace(/^[-*]\s*/, '')
-        if (bullet && !bullet.startsWith('```') && !bullet.startsWith('#')) {
-          currentSlide.bullets.push(bullet)
-        }
-        continue
-      }
-
-      // Content after bullet
-      if (line.trim() && !inNotes && !line.startsWith('#') && !line.startsWith('```')) {
-        const trimmed = line.trim()
-        if (trimmed.length > 0 && !trimmed.startsWith('|')) {
-          currentSlide.bullets.push(trimmed)
-        }
+      const trimmed = line.trim().replace(/^[-*]\s*/, '')
+      if (trimmed && !trimmed.startsWith('```') && !trimmed.startsWith('#') && !trimmed.startsWith('|')) {
+        currentSlide.bullets.push(trimmed)
       }
     }
     if (currentSlide) parsed.push(currentSlide)
@@ -105,32 +79,21 @@ const PPTBuilder: React.FC = () => {
   }
 
   const handleGenerate = async () => {
-    if (!topic.trim()) {
-      antdMessage.warning('请输入PPT主题或内容大纲')
-      return
-    }
-    setLoading(true)
-    setStreamOutput('')
-    setSlides([])
-    setCurrentStep(1)
+    if (!topic.trim()) { antdMessage.warning('请输入PPT主题或内容大纲'); return }
+    setLoading(true); setStreamOutput(''); setSlides([]); setCurrentStep(1)
 
     try {
       const response = await fetch('/api/agent/PptAgent/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          input: topic.trim(),
-          config: { style },
-        }),
+        body: JSON.stringify({ input: topic.trim(), config: { style } }),
       })
-
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       if (!response.body) throw new Error('响应体为空')
 
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
-      let buffer = ''
-      let fullContent = ''
+      let buffer = '', fullContent = ''
 
       while (true) {
         const { done, value } = await reader.read()
@@ -138,43 +101,28 @@ const PPTBuilder: React.FC = () => {
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
         buffer = lines.pop() ?? ''
-
         for (const line of lines) {
           if (line.startsWith('data:')) {
             const data = line.slice(5).trim()
             if (data === '[DONE]') continue
-
-            // Check for step indicator
             if (data.includes('```step')) {
               try {
                 const stepJson = data.replace(/```step\s*/, '').replace(/```\s*$/, '')
                 const step = JSON.parse(stepJson)
                 setCurrentStep(step.step)
                 setStreamOutput(prev => prev + `\n📋 **${step.title}**：${step.description}\n\n---\n\n`)
-              } catch {
-                fullContent += data
-                setStreamOutput(prev => prev + data)
-              }
-            } else {
-              fullContent += data
-              setStreamOutput(prev => prev + data)
-            }
+              } catch { fullContent += data; setStreamOutput(prev => prev + data) }
+            } else { fullContent += data; setStreamOutput(prev => prev + data) }
           }
         }
       }
-
-      // Parse slides after streaming completes
       const parsed = parseSlides(fullContent)
       setSlides(parsed.length > 0 ? parsed : fallbackParseSlides(fullContent))
       setCurrentStep(4)
-    } catch (e: any) {
-      antdMessage.error('PPT生成失败：' + (e.message || '未知错误'))
-    } finally {
-      setLoading(false)
-    }
+    } catch (e: any) { antdMessage.error('生成失败：' + (e.message || '未知错误')) }
+    finally { setLoading(false) }
   }
 
-  /** Fallback: derive slides from any markdown with headings */
   const fallbackParseSlides = (md: string): Slide[] => {
     const sections = md.split(/(?=^## )/m)
     return sections.map((sec, i) => {
@@ -188,93 +136,48 @@ const PPTBuilder: React.FC = () => {
     })
   }
 
-  // ---- Export functions ----
+  const handleReset = () => { setStreamOutput(''); setSlides([]); setTopic(''); setCurrentStep(0) }
+
+  // ---- Export ----
 
   const exportPPTX = async () => {
     setExporting('pptx')
     try {
-      const pres = new pptxgen()
-      pres.layout = 'LAYOUT_WIDE'
-      pres.author = '灵龙AI'
-      pres.title = topic || 'AI生成的演示文稿'
-
+      const pres = new pptxgen(); pres.layout = 'LAYOUT_WIDE'; pres.author = '灵龙AI'; pres.title = topic || 'AI演示文稿'
       for (const slide of slides) {
         const s = pres.addSlide()
-        s.addText(slide.title, {
-          x: 0.8, y: 0.4, w: '85%', h: 0.6,
-          fontSize: 22, bold: true, color: '1F2937',
-        })
-        if (slide.pageNum > 1) {
-          s.addShape(pres.ShapeType.rect, {
-            x: 0, y: 0, w: '100%', h: 0.08,
-            fill: { color: '1677ff' },
-          })
-        }
+        s.addText(slide.title, { x: 0.8, y: 0.4, w: '85%', h: 0.6, fontSize: 22, bold: true, color: '1F2937' })
+        if (slide.pageNum > 1) s.addShape(pres.ShapeType.rect, { x: 0, y: 0, w: '100%', h: 0.08, fill: { color: '1677ff' } })
         const bullets = slide.bullets.map(b => ({ text: b, options: { fontSize: 14, color: '4B5563', bullet: true } }))
-        s.addText(bullets, {
-          x: 0.8, y: 1.2, w: '85%', h: 3.5,
-          fontSize: 14, color: '4B5563', lineSpacing: 28,
-        })
-        if (slide.notes.length > 0) {
-          s.addText('演讲备注: ' + slide.notes[0], {
-            x: 0.8, y: 5.0, w: '85%', h: 0.4,
-            fontSize: 9, color: '9CA3AF', italic: true,
-          })
-        }
+        s.addText(bullets, { x: 0.8, y: 1.2, w: '85%', h: 3.5, fontSize: 14, color: '4B5563', lineSpacing: 28 })
+        if (slide.notes.length > 0) s.addText('备注: ' + slide.notes[0], { x: 0.8, y: 5.0, w: '85%', h: 0.4, fontSize: 9, color: '9CA3AF', italic: true })
       }
-
       await pres.writeFile({ fileName: `${topic || 'presentation'}.pptx` })
       antdMessage.success('PPTX 已下载')
-    } catch (e: any) {
-      antdMessage.error('导出PPTX失败：' + e.message)
-    } finally {
-      setExporting(null)
-    }
+    } catch (e: any) { antdMessage.error('导出失败：' + e.message) }
+    finally { setExporting(null) }
   }
 
   const exportPDF = async () => {
-    if (!previewRef.current) return
-    setExporting('pdf')
+    if (!previewRef.current) return; setExporting('pdf')
     try {
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-      })
+      const canvas = await html2canvas(previewRef.current, { scale: 2, backgroundColor: '#ffffff', useCORS: true })
       const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF('landscape', 'mm', 'a4')
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
-      const imgWidth = pageWidth
-      const imgHeight = (canvas.height * pageWidth) / canvas.width
-      let heightLeft = imgHeight
-      let position = 0
-
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-      heightLeft -= pageHeight
-
-      while (heightLeft > 0) {
-        position = -(imgHeight - heightLeft)
-        pdf.addPage()
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-        heightLeft -= pageHeight
-      }
-
-      pdf.save(`${topic || 'presentation'}.pdf`)
-      antdMessage.success('PDF 已下载')
-    } catch (e: any) {
-      antdMessage.error('导出PDF失败：' + e.message)
-    } finally {
-      setExporting(null)
-    }
+      const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight()
+      const iw = pw, ih = (canvas.height * pw) / canvas.width
+      let hl = ih, pos = 0
+      pdf.addImage(imgData, 'PNG', 0, pos, iw, ih); hl -= ph
+      while (hl > 0) { pos = -(ih - hl); pdf.addPage(); pdf.addImage(imgData, 'PNG', 0, pos, iw, ih); hl -= ph }
+      pdf.save(`${topic || 'presentation'}.pdf`); antdMessage.success('PDF 已下载')
+    } catch (e: any) { antdMessage.error('导出失败：' + e.message) }
+    finally { setExporting(null) }
   }
 
   const exportHTML = () => {
-    const htmlContent = buildHTML(slides, topic)
-    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
-    URL.revokeObjectURL(url)
+    const html = buildHTML(slides, topic)
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob); window.open(url, '_blank'); URL.revokeObjectURL(url)
     antdMessage.success('HTML 已在新标签页打开')
   }
 
@@ -283,9 +186,7 @@ const PPTBuilder: React.FC = () => {
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:Arial,Helvetica,'Microsoft YaHei',sans-serif;background:#f0f2f5;margin:0;padding:20px}
-  .slide{width:720pt;height:405pt;margin:20px auto;background:#fff;
-    border-radius:4pt;padding:36pt 48pt;position:relative;overflow:hidden;
-    page-break-after:always;box-shadow:0 2pt 8pt rgba(0,0,0,.06)}
+  .slide{width:720pt;height:405pt;margin:20px auto;background:#fff;border-radius:4pt;padding:36pt 48pt;position:relative;overflow:hidden;page-break-after:always;box-shadow:0 2pt 8pt rgba(0,0,0,.06)}
   .slide-cover{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
   .slide-cover h1{font-size:28pt;color:#1f2937;margin-bottom:12pt}
   .slide-cover .subtitle{font-size:14pt;color:#6b7280}
@@ -293,165 +194,137 @@ const PPTBuilder: React.FC = () => {
   h2{font-size:20pt;color:#1f2937;border-bottom:2pt solid #e5e7eb;padding-bottom:8pt;margin-bottom:16pt}
   ul{list-style:disc;padding-left:20pt}
   li{font-size:13pt;color:#4b5563;line-height:1.8;margin-bottom:4pt}
-  .notes{position:absolute;bottom:16pt;left:48pt;right:48pt;
-    font-size:9pt;color:#9ca3af;border-left:2pt solid #d1d5db;padding-left:10pt}
+  .notes{position:absolute;bottom:16pt;left:48pt;right:48pt;font-size:9pt;color:#9ca3af;border-left:2pt solid #d1d5db;padding-left:10pt}
   .page-num{position:absolute;bottom:12pt;right:48pt;font-size:8pt;color:#d1d5db}
   .slide-end{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
   .slide-end h1{font-size:24pt;color:#1f2937;margin-bottom:8pt}
-  .slide-end p{font-size:12pt;color:#6b7280}
-</style></head><body>
-  ${s.map((sl, i) => {
-    const isFirst = i === 0
-    const isLast = i === s.length - 1
-    const cls = isFirst ? 'slide slide-cover' : isLast ? 'slide slide-end' : 'slide'
-    return `
-    <div class="${cls}">
-      ${!isFirst && !isLast ? '<div class="slide-top-bar"></div>' : ''}
-      ${isFirst
-        ? `<h1>${sl.title}</h1>${sl.bullets[0] ? `<p class="subtitle">${sl.bullets[0]}</p>` : ''}`
-        : isLast
-          ? `<h1>${sl.title}</h1>${sl.bullets[0] ? `<p>${sl.bullets[0]}</p>` : ''}`
-          : `<h2>${sl.title}</h2>`}
-      ${isFirst || isLast ? '' : `<ul>${sl.bullets.map(b => `<li>${b}</li>`).join('')}</ul>`}
-      ${sl.notes.length && !isFirst && !isLast ? `<div class="notes"><p>🎤 ${sl.notes[0]}</p></div>` : ''}
-      <div class="page-num"><p>${sl.pageNum} / ${s.length}</p></div>
-    </div>`
-  }).join('')}
-</body></html>`
+</style></head><body>${s.map((sl, i) => {
+  const isFirst = i === 0, isLast = i === s.length - 1
+  const cls = isFirst ? 'slide slide-cover' : isLast ? 'slide slide-end' : 'slide'
+  return `<div class="${cls}">${!isFirst && !isLast ? '<div class="slide-top-bar"></div>' : ''}${isFirst ? `<h1>${sl.title}</h1>${sl.bullets[0] ? `<p class="subtitle">${sl.bullets[0]}</p>` : ''}` : isLast ? `<h1>${sl.title}</h1>${sl.bullets[0] ? `<p>${sl.bullets[0]}</p>` : ''}` : `<h2>${sl.title}</h2>`}${isFirst || isLast ? '' : `<ul>${sl.bullets.map(b => `<li>${b}</li>`).join('')}</ul>`}${sl.notes.length && !isFirst && !isLast ? `<div class="notes"><p>${sl.notes[0]}</p></div>` : ''}<div class="page-num"><p>${sl.pageNum} / ${s.length}</p></div></div>`
+}).join('')}</body></html>`
 
   const steps = [
-    { title: '分析主题', description: '解析核心要点' },
-    { title: '构建大纲', description: '规划内容结构' },
-    { title: '生成内容', description: '逐页撰写文案' },
-    { title: '完成', description: '预览与导出' },
+    { title: '分析主题', description: '解析核心要点与目标受众' },
+    { title: '构建大纲', description: '规划演示结构与逻辑流' },
+    { title: '生成内容', description: '逐页撰写标题与要点文案' },
+    { title: '完成', description: '预览、导出与分享' },
   ]
 
   return (
     <div className="ppt-builder">
-      {/* Header */}
-      <div className="ppt-header">
-        <div className="ppt-header-left">
-          <FilePptOutlined className="ppt-icon" />
+      {/* ---- 顶部标题栏 ---- */}
+      <div className="ppt-topbar">
+        <div className="ppt-topbar-left">
+          <div className="ppt-topbar-icon">
+            <FilePptOutlined />
+          </div>
           <div>
-            <Title level={4} style={{ margin: 0 }}>灵龙PPT</Title>
+            <Title level={3} style={{ margin: 0, fontSize: 20 }}>灵龙PPT</Title>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              输入主题，AI 自动生成演示文稿 · 支持导出 PPTX / PDF / HTML
+              AI 智能生成演示文稿 · 支持导出 PPTX / PDF / HTML
             </Text>
           </div>
         </div>
-        <Tag color="purple">GPT-5.5</Tag>
+        <Space size={8}>
+          <Tag color="blue" style={{ borderRadius: 6 }}>GPT-5.5</Tag>
+          <Tag style={{ borderRadius: 6, background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0' }}>4 步生成</Tag>
+        </Space>
       </div>
 
-      <div className="ppt-body">
-        {/* Input card */}
-        <Card className="ppt-input-card" size="small">
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>PPT 主题或内容大纲</Text>
-          <TextArea
-            value={topic}
-            onChange={e => setTopic(e.target.value)}
-            placeholder="输入您想要生成的PPT主题，例如：『2025年AI行业发展趋速报告』或粘贴已有的内容大纲..."
-            autoSize={{ minRows: 3, maxRows: 6 }}
-            disabled={loading}
-            style={{ borderRadius: 8 }}
-          />
-          <div className="ppt-input-row">
-            <Space size={12} wrap>
-              <Select
-                value={style}
-                onChange={setStyle}
-                options={STYLE_OPTIONS}
-                style={{ width: 140 }}
-                disabled={loading}
-              />
+      {/* ---- 主体 ---- */}
+      <div className="ppt-workspace">
+        {/* ---- 左侧输入区 ---- */}
+        <div className="ppt-input-panel">
+          <Card className="ppt-input-card" bordered={false}>
+            <div className="ppt-input-label">
+              <BulbOutlined style={{ color: '#1677ff' }} />
+              <Text strong>输入主题</Text>
+            </div>
+            <TextArea
+              value={topic}
+              onChange={e => setTopic(e.target.value)}
+              placeholder="输入您想要生成的PPT主题，例如：『2025年AI行业发展趋势报告』或粘贴已有的内容大纲..."
+              autoSize={{ minRows: 5, maxRows: 9 }}
+              disabled={loading}
+              className="ppt-textarea"
+            />
+            <div className="ppt-input-options">
+              <div className="ppt-option-item">
+                <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>设计风格</Text>
+                <Select
+                  value={style}
+                  onChange={setStyle}
+                  options={STYLE_OPTIONS}
+                  style={{ width: '100%' }}
+                  disabled={loading}
+                  size="middle"
+                />
+              </div>
+            </div>
+            <div className="ppt-input-actions">
               <Button
                 type="primary"
-                icon={<ThunderboltOutlined />}
+                icon={loading ? undefined : <SendOutlined />}
                 onClick={handleGenerate}
                 loading={loading}
                 disabled={!topic.trim()}
                 size="large"
+                block
               >
                 {loading ? 'AI 正在生成...' : '开始生成'}
               </Button>
               {streamOutput && !loading && (
-                <Button
-                  icon={<ClearOutlined />}
-                  onClick={() => { setStreamOutput(''); setSlides([]); setTopic(''); setCurrentStep(0) }}
-                >
+                <Button icon={<ClearOutlined />} onClick={handleReset} size="middle" block style={{ marginTop: 8 }}>
                   清空重来
                 </Button>
               )}
-            </Space>
-
-            {slides.length > 0 && (
-              <Space size={4}>
-                <Tooltip title="下载 PPTX">
-                  <Button
-                    icon={<FilePptOutlined />}
-                    onClick={exportPPTX}
-                    loading={exporting === 'pptx'}
-                    type="primary"
-                    ghost
-                  >
-                    PPTX
-                  </Button>
-                </Tooltip>
-                <Tooltip title="下载 PDF">
-                  <Button
-                    icon={<FilePdfOutlined />}
-                    onClick={exportPDF}
-                    loading={exporting === 'pdf'}
-                  >
-                    PDF
-                  </Button>
-                </Tooltip>
-                <Tooltip title="在新标签页打开 HTML">
-                  <Button icon={<Html5Outlined />} onClick={exportHTML}>
-                    HTML
-                  </Button>
-                </Tooltip>
-              </Space>
-            )}
-          </div>
-        </Card>
-
-        {/* Steps indicator */}
-        {(loading || streamOutput) && (
-          <Card size="small" className="ppt-steps-card">
-            <Steps
-              current={currentStep - 1}
-              size="small"
-              items={steps.map(s => ({ title: s.title, description: s.description }))}
-            />
+            </div>
           </Card>
-        )}
+        </div>
 
-        {/* Preview area */}
-        <div className="ppt-content-area">
-          {/* Raw markdown output */}
+        {/* ---- 右侧内容区 ---- */}
+        <div className="ppt-content-panel">
+          {/* 步骤指示 */}
+          {(currentStep > 0) && (
+            <Card className="ppt-steps-card" bordered={false}>
+              <Steps
+                current={currentStep - 1}
+                size="small"
+                items={steps.map(s => ({ title: s.title, description: s.description }))}
+              />
+            </Card>
+          )}
+
+          {/* 流式输出 */}
           {streamOutput && (
             <Card
-              size="small"
-              title={<><EyeOutlined /> 生成内容</>}
               className="ppt-stream-card"
+              bordered={false}
+              title={<><EyeOutlined style={{ color: '#1677ff' }} /> 生成内容</>}
+              extra={slides.length > 0 && <Tag color="blue">{slides.length} 页</Tag>}
             >
-              <Spin spinning={loading} tip="AI 正在撰写...">
+              <Spin spinning={loading} tip="AI 正在撰写中...">
                 <div className="ppt-stream-content">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {streamOutput}
-                  </ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamOutput}</ReactMarkdown>
                 </div>
               </Spin>
             </Card>
           )}
 
-          {/* Slide preview */}
+          {/* 幻灯片预览 */}
           {slides.length > 0 && (
             <Card
-              size="small"
-              title={<><BulbOutlined /> 幻灯片预览</>}
-              extra={<Tag>{slides.length} 页</Tag>}
               className="ppt-preview-card"
+              bordered={false}
+              title={<><FilePptOutlined style={{ color: '#1677ff' }} /> 幻灯片预览</>}
+              extra={
+                <Space size={4}>
+                  <Tooltip title="下载 PPTX"><Button icon={<FilePptOutlined />} type="primary" ghost size="small" onClick={exportPPTX} loading={exporting === 'pptx'}>PPTX</Button></Tooltip>
+                  <Tooltip title="下载 PDF"><Button icon={<FilePdfOutlined />} size="small" onClick={exportPDF} loading={exporting === 'pdf'}>PDF</Button></Tooltip>
+                  <Tooltip title="打开 HTML"><Button icon={<Html5Outlined />} size="small" onClick={exportHTML}>HTML</Button></Tooltip>
+                </Space>
+              }
             >
               <div ref={previewRef} className="ppt-slide-preview">
                 {slides.map((slide, idx) => (
@@ -461,15 +334,11 @@ const PPTBuilder: React.FC = () => {
                       <h2>{slide.title}</h2>
                     </div>
                     <ul className="ppt-slide-bullets">
-                      {slide.bullets.map((b, bi) => (
-                        <li key={bi}>{b}</li>
-                      ))}
+                      {slide.bullets.map((b, bi) => <li key={bi}>{b}</li>)}
                     </ul>
                     {slide.notes.length > 0 && (
                       <div className="ppt-slide-notes">
-                        <Text type="secondary" style={{ fontSize: 11 }}>
-                          🎤 {slide.notes[0]}
-                        </Text>
+                        <Text type="secondary" style={{ fontSize: 11 }}>{slide.notes[0]}</Text>
                       </div>
                     )}
                   </div>
@@ -478,13 +347,18 @@ const PPTBuilder: React.FC = () => {
             </Card>
           )}
 
-          {/* Empty state */}
+          {/* 空状态 */}
           {!streamOutput && !loading && (
             <div className="ppt-empty">
-              <FilePptOutlined style={{ fontSize: 48, color: '#d1d5db' }} />
-              <p style={{ color: '#9ca3af', marginTop: 12 }}>
-                输入主题后点击「开始生成」，AI 将为您创建专业演示文稿
-              </p>
+              <div className="ppt-empty-icon">
+                <FilePptOutlined />
+              </div>
+              <Text type="secondary" style={{ fontSize: 15, marginTop: 16, display: 'block' }}>
+                输入主题后点击「开始生成」
+              </Text>
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                AI 将自动分析主题、构建大纲、逐页生成专业演示文稿
+              </Text>
             </div>
           )}
         </div>
