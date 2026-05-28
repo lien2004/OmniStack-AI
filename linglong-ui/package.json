@@ -18,6 +18,8 @@
     "dayjs": "^1.11.0",
     "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
+    "huashu": "^1.0.0",
+    "huashu-cc": "^1.0.2",
     "jspdf": "^4.2.1",
     "jszip": "^3.10.1",
     "lucide-react": "^1.7.0",
@@ -44,6 +46,8 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "less": "^4.2.0",
+    "playwright": "^1.60.0",
+    "sharp": "^0.34.5",
     "typescript": "^5.2.2",
     "vite": "^5.0.8"
   }

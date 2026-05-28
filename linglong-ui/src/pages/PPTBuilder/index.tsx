@@ -281,19 +281,42 @@ const PPTBuilder: React.FC = () => {
   const buildHTML = (s: Slide[], title: string) => `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>${title}</title>
 <style>
-  body{font-family:-apple-system,sans-serif;margin:0;background:#f0f2f5}
-  .slide{width:960px;min-height:540px;margin:40px auto;background:#fff;
-    border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:48px 64px;page-break-after:always}
-  h2{font-size:28px;color:#1f2937;border-bottom:3px solid #1677ff;padding-bottom:12px;margin:0 0 24px}
-  ul{font-size:16px;color:#4b5563;line-height:2}
-  .notes{font-size:12px;color:#9ca3af;border-left:3px solid #e5e7eb;padding-left:12px;margin-top:24px}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Arial,Helvetica,'Microsoft YaHei',sans-serif;background:#f0f2f5;margin:0;padding:20px}
+  .slide{width:720pt;height:405pt;margin:20px auto;background:#fff;
+    border-radius:4pt;padding:36pt 48pt;position:relative;overflow:hidden;
+    page-break-after:always;box-shadow:0 2pt 8pt rgba(0,0,0,.06)}
+  .slide-cover{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+  .slide-cover h1{font-size:28pt;color:#1f2937;margin-bottom:12pt}
+  .slide-cover .subtitle{font-size:14pt;color:#6b7280}
+  .slide-top-bar{position:absolute;top:0;left:0;width:100%;height:3pt;background:#1677ff}
+  h2{font-size:20pt;color:#1f2937;border-bottom:2pt solid #e5e7eb;padding-bottom:8pt;margin-bottom:16pt}
+  ul{list-style:disc;padding-left:20pt}
+  li{font-size:13pt;color:#4b5563;line-height:1.8;margin-bottom:4pt}
+  .notes{position:absolute;bottom:16pt;left:48pt;right:48pt;
+    font-size:9pt;color:#9ca3af;border-left:2pt solid #d1d5db;padding-left:10pt}
+  .page-num{position:absolute;bottom:12pt;right:48pt;font-size:8pt;color:#d1d5db}
+  .slide-end{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+  .slide-end h1{font-size:24pt;color:#1f2937;margin-bottom:8pt}
+  .slide-end p{font-size:12pt;color:#6b7280}
 </style></head><body>
-  ${s.map(sl => `
-    <div class="slide">
-      <h2>${sl.title}</h2>
-      <ul>${sl.bullets.map(b => `<li>${b}</li>`).join('')}</ul>
-      ${sl.notes.length ? `<div class="notes">${sl.notes[0]}</div>` : ''}
-    </div>`).join('')}
+  ${s.map((sl, i) => {
+    const isFirst = i === 0
+    const isLast = i === s.length - 1
+    const cls = isFirst ? 'slide slide-cover' : isLast ? 'slide slide-end' : 'slide'
+    return `
+    <div class="${cls}">
+      ${!isFirst && !isLast ? '<div class="slide-top-bar"></div>' : ''}
+      ${isFirst
+        ? `<h1>${sl.title}</h1>${sl.bullets[0] ? `<p class="subtitle">${sl.bullets[0]}</p>` : ''}`
+        : isLast
+          ? `<h1>${sl.title}</h1>${sl.bullets[0] ? `<p>${sl.bullets[0]}</p>` : ''}`
+          : `<h2>${sl.title}</h2>`}
+      ${isFirst || isLast ? '' : `<ul>${sl.bullets.map(b => `<li>${b}</li>`).join('')}</ul>`}
+      ${sl.notes.length && !isFirst && !isLast ? `<div class="notes"><p>🎤 ${sl.notes[0]}</p></div>` : ''}
+      <div class="page-num"><p>${sl.pageNum} / ${s.length}</p></div>
+    </div>`
+  }).join('')}
 </body></html>`
 
   const steps = [
