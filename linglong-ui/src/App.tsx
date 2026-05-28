@@ -12,6 +12,8 @@ import MCPHub from './pages/MCPHub'
 import Settings from './pages/Settings'
 import Chat from './pages/Chat'
 import KnowledgeBase from './pages/KnowledgeBase'
+import KnowledgeDocuments from './pages/KnowledgeBase/Documents'
+import KnowledgeChunks from './pages/KnowledgeBase/Chunks'
 import Login from './pages/Login'
 import Register from './pages/Login/Register'
 import Profile from './pages/Profile'
@@ -24,6 +26,8 @@ function App() {
         <Route index element={<Dashboard />} />
         <Route path="chat" element={<Chat />} />
         <Route path="knowledge" element={<KnowledgeBase />} />
+        <Route path="knowledge/:kbId/documents" element={<KnowledgeDocuments />} />
+        <Route path="knowledge/:kbId/documents/:docId/chunks" element={<KnowledgeChunks />} />
         <Route path="projects" element={<ProjectList />} />
         <Route path="projects/create" element={<CreateProject />} />
         <Route path="projects/:id" element={<ProjectDetail />} />

@@ -3,10 +3,15 @@ package com.linglong.llm.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -24,9 +29,53 @@ public class RagService {
     private final VectorStoreService vectorStoreService;
     private final ZhipuChatService zhipuChatService;
 
+    @Autowired
+    @Qualifier("chatJdbcTemplate")
+    private JdbcTemplate mysqlJdbc;
+
     public RagService(VectorStoreService vectorStoreService, ZhipuChatService zhipuChatService) {
         this.vectorStoreService = vectorStoreService;
         this.zhipuChatService = zhipuChatService;
+    }
+
+    /**
+     * 过滤掉被禁用的文档/分块的 chunk
+     */
+    private List<Document> filterDisabled(List<Document> docs) {
+        if (docs == null || docs.isEmpty()) return docs;
+        // 1. 过滤 chunk 自身的 enabled 标记
+        List<Document> step1 = docs.stream()
+                .filter(d -> {
+                    Object enabled = d.getMetadata().get("enabled");
+                    return !(enabled instanceof Boolean) || (Boolean) enabled;
+                })
+                .collect(Collectors.toList());
+        if (step1.isEmpty()) return step1;
+
+        // 2. 收集相关的 documentId，从 MySQL 查出禁用的 docId
+        Set<String> docIds = step1.stream()
+                .map(d -> (String) d.getMetadata().get("documentId"))
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (docIds.isEmpty()) return step1;
+
+        Set<String> disabledDocIds = new HashSet<>();
+        try {
+            String placeholders = docIds.stream().map(x -> "?").collect(Collectors.joining(","));
+            List<String> rows = mysqlJdbc.queryForList(
+                    "SELECT id FROM knowledge_document WHERE enabled = 0 AND id IN (" + placeholders + ")",
+                    String.class, docIds.toArray());
+            disabledDocIds.addAll(rows);
+        } catch (Exception e) {
+            log.warn("查询禁用文档失败，跳过过滤: {}", e.getMessage());
+        }
+
+        return step1.stream()
+                .filter(d -> {
+                    String docId = (String) d.getMetadata().get("documentId");
+                    return docId == null || !disabledDocIds.contains(docId);
+                })
+                .collect(Collectors.toList());
     }
 
     /**
@@ -38,7 +87,11 @@ public class RagService {
      */
     public String chat(String question, int topK) {
         // 1. 从向量库检索相关文档
-        List<Document> relevantDocs = vectorStoreService.similaritySearch(question, topK);
+        List<Document> relevantDocs = vectorStoreService.similaritySearch(question, topK * 2);
+        relevantDocs = filterDisabled(relevantDocs);
+        if (relevantDocs.size() > topK) {
+            relevantDocs = relevantDocs.subList(0, topK);
+        }
 
         if (relevantDocs.isEmpty()) {
             log.info("未找到相关文档，直接调用大模型回答");
@@ -112,7 +165,11 @@ public class RagService {
      * @return RAG结果，包含回答和引用来源
      */
     public RagResult chatWithSources(String question, int topK) {
-        List<Document> relevantDocs = vectorStoreService.similaritySearch(question, topK);
+        List<Document> relevantDocs = vectorStoreService.similaritySearch(question, topK * 2);
+        relevantDocs = filterDisabled(relevantDocs);
+        if (relevantDocs.size() > topK) {
+            relevantDocs = relevantDocs.subList(0, topK);
+        }
 
         String context = relevantDocs.stream()
                 .map(Document::getContent)
