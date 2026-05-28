@@ -20,7 +20,7 @@ import java.util.Map;
 public class PptAgent implements Agent {
 
     private static final Logger log = LoggerFactory.getLogger(PptAgent.class);
-    private static final String MODEL = "gpt-5.5";
+    private static final String MODEL = "gpt-4o";
 
     private final LLMService llmService;
 

@@ -34,7 +34,7 @@ public class LLMServiceImpl implements LLMService {
     @Value("${bailian.api-key}")
     private String apiKey;
 
-    @Value("${bailian.model:gpt-5.5}")
+    @Value("${bailian.model:gpt-4o}")
     private String model;
 
     @Value("${bailian.temperature:0.7}")
