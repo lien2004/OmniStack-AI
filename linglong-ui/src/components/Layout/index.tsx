@@ -318,7 +318,7 @@ function Layout() {
             </Badge>
             <Dropdown menu={{ items: userMenuItems, onClick: handleMenuClick }} placement="bottomRight">
               <div className="user-info">
-                <Avatar style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)' }} icon={<UserOutlined />} />
+                <Avatar style={{ background: '#1677ff' }} icon={<UserOutlined />} />
                 <div className="user-detail">
                   <span className="username">{user?.username || '未登录'}</span>
                   <span className="user-role">

@@ -24,7 +24,8 @@ const featuredApps = [
     title: 'AI 对话助手',
     desc: '基于 GLM-4.6 + 向量缓存，智能问答让 AI 更懂你！',
     icon: <MessageOutlined />,
-    iconBg: 'linear-gradient(135deg, #1677ff, #69b1ff)',
+    iconBg: '#eff6ff',
+    iconColor: '#1677ff',
     path: '/chat',
     tags: ['GLM-4.6', 'RAG增强', '上下文记忆'],
   },
@@ -33,7 +34,8 @@ const featuredApps = [
     title: 'RAG 知识问答',
     desc: '向量检索增强生成，基于知识库精准回答专业问题。',
     icon: <DatabaseOutlined />,
-    iconBg: 'linear-gradient(135deg, #52c41a, #95de64)',
+    iconBg: '#f0fdf4',
+    iconColor: '#16a34a',
     path: '/knowledge',
     tags: ['向量检索', 'PGVector', '文档解析'],
   },
@@ -42,25 +44,28 @@ const featuredApps = [
     title: 'MCP Hub',
     desc: 'Model Context Protocol 工具集成中心，扩展 AI 能力边界。',
     icon: <ApiOutlined />,
-    iconBg: 'linear-gradient(135deg, #fa8c16, #ffd591)',
+    iconBg: '#fff7ed',
+    iconColor: '#ea580c',
     path: '/mcp',
     tags: ['MCP协议', '工具调用', '能力扩展'],
   },
   {
     id: 4,
     title: 'AI 图片生成',
-    desc: '基于 GLM-image，支持文生图与图生图创作。',
+    desc: '基于 GLM-image,支持文生图与图生图创作。',
     icon: <PictureOutlined />,
-    iconBg: 'linear-gradient(135deg, #a855f7, #d8b4fe)',
+    iconBg: '#faf5ff',
+    iconColor: '#9333ea',
     path: '/image-generation',
     tags: ['Gemini', '文生图', '图生图'],
   },
   {
     id: 5,
     title: 'AI 简历助手',
-    desc: '基于 gpt-5.5，智能生成简历、专业测评分析、一键优化完善。',
+    desc: '基于 gpt-5.5,智能生成简历、专业测评分析、一键优化完善。',
     icon: <FileTextOutlined />,
-    iconBg: 'linear-gradient(135deg, #52c41a, #95de64)',
+    iconBg: '#f0fdf4',
+    iconColor: '#16a34a',
     path: '/resume',
     tags: ['gpt-5.5', '简历生成', '测评优化'],
   },
@@ -333,7 +338,10 @@ function Dashboard() {
                         </div>
                       </div>
                     </div>
-                    <div className="featured-card-icon" style={{ background: app.iconBg }}>
+                    <div
+                      className="featured-card-icon"
+                      style={{ background: app.iconBg, color: app.iconColor }}
+                    >
                       {app.icon}
                     </div>
                   </div>

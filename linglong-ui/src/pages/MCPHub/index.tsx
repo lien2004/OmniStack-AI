@@ -118,9 +118,9 @@ function WeatherApp({ onClose }: { onClose: () => void }) {
   return (
     <Modal open title={null} onCancel={onClose} footer={null} width={720} destroyOnClose
       styles={{ body: { padding: 0 } }}>
-      <div style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '32px 32px 24px', borderRadius: '8px 8px 0 0' }}>
-        <h2 style={{ color: '#fff', margin: 0, fontSize: 22, fontWeight: 700 }}>🌤️ 天气查询</h2>
-        <p style={{ color: 'rgba(255,255,255,0.8)', margin: '6px 0 0', fontSize: 13 }}>查询全国城市实时天气与未来预报</p>
+      <div style={{ background: '#ffffff', padding: '24px 32px 20px', borderBottom: '1px solid #f0f0f0' }}>
+        <h2 style={{ color: '#1f2937', margin: 0, fontSize: 18, fontWeight: 700 }}>🌤️ 天气查询</h2>
+        <p style={{ color: '#6b7280', margin: '4px 0 0', fontSize: 13 }}>查询全国城市实时天气与未来预报</p>
       </div>
       <div style={{ padding: '24px 32px 32px' }}>
         <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
@@ -141,7 +141,7 @@ function WeatherApp({ onClose }: { onClose: () => void }) {
           <div>
             {/* 实时天气 */}
             {result.liveWeather && (
-              <div style={{ background: 'linear-gradient(135deg, #e6f7ff, #f0f5ff)', borderRadius: 16, padding: '24px 28px', border: '1px solid #d6e4ff', marginBottom: 16 }}>
+              <div style={{ background: '#f8fbff', borderRadius: 12, padding: '20px 24px', border: '1px solid #d6e4ff', marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
                     <Text strong style={{ fontSize: 20, display: 'block' }}>🌍 {result.liveWeather.city || result.city || city}</Text>
@@ -164,7 +164,7 @@ function WeatherApp({ onClose }: { onClose: () => void }) {
             {result.forecast && (
               <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 }}>
                 {result.forecast.map((day: any, idx: number) => (
-                  <div key={idx} style={{ minWidth: 150, padding: '16px', borderRadius: 14, background: 'linear-gradient(135deg, #f0f5ff, #e6f7ff)', border: '1px solid #d6e4ff', flexShrink: 0 }}>
+                  <div key={idx} style={{ minWidth: 140, padding: '14px', borderRadius: 10, background: '#f8fbff', border: '1px solid #e5e7eb', flexShrink: 0 }}>
                     <Text strong style={{ fontSize: 13, display: 'block' }}>{day.week || `第${idx+1}天`}</Text>
                     <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 8 }}>{day.date}</Text>
                     <Text style={{ fontSize: 28, display: 'block', marginBottom: 8 }}>{getWeatherIcon(day.dayWeather || '')}</Text>
@@ -237,9 +237,9 @@ function DockerApp({ onClose }: { onClose: () => void }) {
   return (
     <Modal open title={null} onCancel={onClose} footer={null} width={860} destroyOnClose
       styles={{ body: { padding: 0 } }}>
-      <div style={{ background: 'linear-gradient(135deg, #13c2c2 0%, #006d75 100%)', padding: '32px 32px 24px', borderRadius: '8px 8px 0 0' }}>
-        <h2 style={{ color: '#fff', margin: 0, fontSize: 22, fontWeight: 700 }}>🐳 Docker 管理</h2>
-        <p style={{ color: 'rgba(255,255,255,0.8)', margin: '6px 0 0', fontSize: 13 }}>管理容器、镜像，执行Docker操作</p>
+      <div style={{ background: '#ffffff', padding: '24px 32px 20px', borderBottom: '1px solid #f0f0f0' }}>
+        <h2 style={{ color: '#1f2937', margin: 0, fontSize: 18, fontWeight: 700 }}>🐳 Docker 管理</h2>
+        <p style={{ color: '#6b7280', margin: '4px 0 0', fontSize: 13 }}>管理容器、镜像，执行Docker操作</p>
       </div>
       <div style={{ padding: '24px 32px 32px' }}>
         <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
@@ -325,9 +325,9 @@ function GitApp({ onClose }: { onClose: () => void }) {
   return (
     <Modal open title={null} onCancel={onClose} footer={null} width={800} destroyOnClose
       styles={{ body: { padding: 0 } }}>
-      <div style={{ background: 'linear-gradient(135deg, #fa8c16 0%, #d46b08 100%)', padding: '32px 32px 24px', borderRadius: '8px 8px 0 0' }}>
-        <h2 style={{ color: '#fff', margin: 0, fontSize: 22, fontWeight: 700 }}>📂 Git 版本控制</h2>
-        <p style={{ color: 'rgba(255,255,255,0.8)', margin: '6px 0 0', fontSize: 13 }}>执行Git操作：查看状态、提交、推送、拉取</p>
+      <div style={{ background: '#ffffff', padding: '24px 32px 20px', borderBottom: '1px solid #f0f0f0' }}>
+        <h2 style={{ color: '#1f2937', margin: 0, fontSize: 18, fontWeight: 700 }}>📂 Git 版本控制</h2>
+        <p style={{ color: '#6b7280', margin: '4px 0 0', fontSize: 13 }}>执行Git操作：查看状态、提交、推送、拉取</p>
       </div>
       <div style={{ padding: '24px 32px 32px' }}>
         <div style={{ marginBottom: 20 }}>
@@ -395,9 +395,9 @@ function WriteCodeApp({ onClose }: { onClose: () => void }) {
   return (
     <Modal open title={null} onCancel={onClose} footer={null} width={800} destroyOnClose
       styles={{ body: { padding: 0 } }}>
-      <div style={{ background: 'linear-gradient(135deg, #52c41a 0%, #237804 100%)', padding: '32px 32px 24px', borderRadius: '8px 8px 0 0' }}>
-        <h2 style={{ color: '#fff', margin: 0, fontSize: 22, fontWeight: 700 }}>✏️ 代码写入</h2>
-        <p style={{ color: 'rgba(255,255,255,0.8)', margin: '6px 0 0', fontSize: 13 }}>将代码内容写入指定文件路径，支持自动创建目录</p>
+      <div style={{ background: '#ffffff', padding: '24px 32px 20px', borderBottom: '1px solid #f0f0f0' }}>
+        <h2 style={{ color: '#1f2937', margin: 0, fontSize: 18, fontWeight: 700 }}>✏️ 代码写入</h2>
+        <p style={{ color: '#6b7280', margin: '4px 0 0', fontSize: 13 }}>将代码内容写入指定文件路径，支持自动创建目录</p>
       </div>
       <div style={{ padding: '24px 32px 32px' }}>
         <div style={{ marginBottom: 16 }}>
@@ -476,9 +476,9 @@ function ReadFileApp({ onClose }: { onClose: () => void }) {
   return (
     <Modal open title={null} onCancel={onClose} footer={null} width={860} destroyOnClose
       styles={{ body: { padding: 0 } }}>
-      <div style={{ background: 'linear-gradient(135deg, #1677ff 0%, #003a8c 100%)', padding: '32px 32px 24px', borderRadius: '8px 8px 0 0' }}>
-        <h2 style={{ color: '#fff', margin: 0, fontSize: 22, fontWeight: 700 }}>📄 文档读取</h2>
-        <p style={{ color: 'rgba(255,255,255,0.8)', margin: '6px 0 0', fontSize: 13 }}>读取文件内容，支持PDF、Word、Markdown、TXT等多种格式</p>
+      <div style={{ background: '#ffffff', padding: '24px 32px 20px', borderBottom: '1px solid #f0f0f0' }}>
+        <h2 style={{ color: '#1f2937', margin: 0, fontSize: 18, fontWeight: 700 }}>📄 文档读取</h2>
+        <p style={{ color: '#6b7280', margin: '4px 0 0', fontSize: 13 }}>读取文件内容，支持PDF、Word、Markdown、TXT等多种格式</p>
       </div>
       <div style={{ padding: '24px 32px 32px' }}>
         <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
@@ -669,9 +669,9 @@ function DiagramApp({ onClose }: { onClose: () => void }) {
   return (
     <Modal open title={null} onCancel={onClose} footer={null} width={960} destroyOnClose
       styles={{ body: { padding: 0 } }}>
-      <div style={{ background: 'linear-gradient(135deg, #722ed1 0%, #391085 100%)', padding: '32px 32px 24px', borderRadius: '8px 8px 0 0' }}>
-        <h2 style={{ color: '#fff', margin: 0, fontSize: 22, fontWeight: 700 }}>📊 智能图表生成</h2>
-        <p style={{ color: 'rgba(255,255,255,0.8)', margin: '6px 0 0', fontSize: 13 }}>AI生成图表 → 预览确认 → 一键导入 draw.io 自由编辑调整</p>
+      <div style={{ background: '#ffffff', padding: '24px 32px 20px', borderBottom: '1px solid #f0f0f0' }}>
+        <h2 style={{ color: '#1f2937', margin: 0, fontSize: 18, fontWeight: 700 }}>📊 智能图表生成</h2>
+        <p style={{ color: '#6b7280', margin: '4px 0 0', fontSize: 13 }}>AI生成图表 → 预览确认 → 一键导入 draw.io 自由编辑调整</p>
       </div>
       <div style={{ padding: '24px 32px 32px' }}>
         {/* 模板快捷选择 */}
@@ -834,9 +834,9 @@ function DatabaseApp({ onClose }: { onClose: () => void }) {
   return (
     <Modal open title={null} onCancel={onClose} footer={null} width={900} destroyOnClose
       styles={{ body: { padding: 0 } }}>
-      <div style={{ background: 'linear-gradient(135deg, #eb2f96 0%, #780650 100%)', padding: '32px 32px 24px', borderRadius: '8px 8px 0 0' }}>
-        <h2 style={{ color: '#fff', margin: 0, fontSize: 22, fontWeight: 700 }}>🗄️ 数据库查询</h2>
-        <p style={{ color: 'rgba(255,255,255,0.8)', margin: '6px 0 0', fontSize: 13 }}>执行SQL查询，查看表结构与数据</p>
+      <div style={{ background: '#ffffff', padding: '24px 32px 20px', borderBottom: '1px solid #f0f0f0' }}>
+        <h2 style={{ color: '#1f2937', margin: 0, fontSize: 18, fontWeight: 700 }}>🗄️ 数据库查询</h2>
+        <p style={{ color: '#6b7280', margin: '4px 0 0', fontSize: 13 }}>执行SQL查询，查看表结构与数据</p>
       </div>
       <div style={{ padding: '24px 32px 32px' }}>
         <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>

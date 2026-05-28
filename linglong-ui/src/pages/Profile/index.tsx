@@ -76,7 +76,7 @@ const Profile = () => {
         <div className="profile-avatar-section">
           <Avatar
             size={80}
-            style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', fontSize: 32 }}
+            style={{ background: '#1677ff', fontSize: 32 }}
             icon={<UserOutlined />}
           />
           <div className="profile-basic-info">
