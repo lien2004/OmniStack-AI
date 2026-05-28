@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Input, Tabs } from 'antd'
 import {
@@ -13,6 +13,8 @@ import {
   ArrowRightOutlined,
   PictureOutlined,
   FileTextOutlined,
+  LeftOutlined,
+  RightOutlined,
 } from '@ant-design/icons'
 import './style.css'
 
@@ -178,6 +180,74 @@ function Dashboard() {
   const [activeCategory, setActiveCategory] = useState('featured')
   const [searchVal, setSearchVal] = useState('')
 
+  // 精选卡片轮播
+  const [cardsPerView, setCardsPerView] = useState(3)
+  const totalCards = featuredApps.length
+  const extendedApps = [...featuredApps, ...featuredApps]
+  const [carouselIndex, setCarouselIndex] = useState(0)
+  const [transitionOn, setTransitionOn] = useState(true)
+  const [isPaused, setIsPaused] = useState(false)
+  const timerRef = useRef<number | null>(null)
+
+  // 根据视口宽度调整每屏卡片数
+  useEffect(() => {
+    const computeCardsPerView = () => {
+      const w = window.innerWidth
+      if (w <= 720) return 1
+      if (w <= 1100) return 2
+      return 3
+    }
+    const handle = () => setCardsPerView(computeCardsPerView())
+    handle()
+    window.addEventListener('resize', handle)
+    return () => window.removeEventListener('resize', handle)
+  }, [])
+
+  // 自动滚动
+  useEffect(() => {
+    if (isPaused) return
+    timerRef.current = window.setInterval(() => {
+      setCarouselIndex((i) => i + 1)
+    }, 3500)
+    return () => {
+      if (timerRef.current) window.clearInterval(timerRef.current)
+    }
+  }, [isPaused])
+
+  // 到达克隆段末尾时，无动画跳回首段
+  useEffect(() => {
+    if (carouselIndex < totalCards) return
+    const t = window.setTimeout(() => {
+      setTransitionOn(false)
+      setCarouselIndex(carouselIndex - totalCards)
+      // 下一帧恢复 transition
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setTransitionOn(true))
+      })
+    }, 600)
+    return () => window.clearTimeout(t)
+  }, [carouselIndex, totalCards])
+
+  const handlePrev = () => {
+    if (carouselIndex <= 0) {
+      // 反向：先无动画跳到 totalCards，再向左滚一张
+      setTransitionOn(false)
+      setCarouselIndex(totalCards)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTransitionOn(true)
+          setCarouselIndex(totalCards - 1)
+        })
+      })
+    } else {
+      setCarouselIndex((i) => i - 1)
+    }
+  }
+
+  const handleNext = () => {
+    setCarouselIndex((i) => i + 1)
+  }
+
   const filteredApps = appList.filter((app) => {
     const matchTab = activeTab === 'all' || app.category === activeTab
     const matchCat =
@@ -208,41 +278,87 @@ function Dashboard() {
         </Button>
       </div>
 
-      {/* 精选应用卡片区 */}
+      {/* 精选应用卡片区（横向轮播） */}
       <div className="featured-section">
-        <div className="featured-cards">
-          {featuredApps.map((app) => (
-            <div key={app.id} className="featured-card" onClick={() => navigate(app.path)}>
-              <div className="featured-card-body">
-                <div className="featured-card-left">
-                  <h3 className="featured-card-title">{app.title}</h3>
-                  <p className="featured-card-desc">{app.desc}</p>
-                  <div className="featured-card-footer">
-                    <Button
-                      type="primary"
-                      size="small"
-                      className="featured-card-btn"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        navigate(app.path)
-                      }}
-                    >
-                      点击查看
-                    </Button>
-                    <div className="featured-card-tags">
-                      {app.tags.map((tag) => (
-                        <span key={tag} className="featured-tag">
-                          {tag}
-                        </span>
-                      ))}
+        <div
+          className="featured-carousel"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          <button
+            type="button"
+            className="featured-arrow featured-arrow-left"
+            onClick={handlePrev}
+            aria-label="上一组"
+          >
+            <LeftOutlined />
+          </button>
+
+          <div className="featured-viewport">
+            <div
+              className="featured-track"
+              style={{
+                transform: `translateX(calc(${-carouselIndex} * (100% / ${cardsPerView})))`,
+                transition: transitionOn ? 'transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1)' : 'none',
+              }}
+            >
+              {extendedApps.map((app, idx) => (
+                <div
+                  key={`${app.id}-${idx}`}
+                  className="featured-card"
+                  onClick={() => navigate(app.path)}
+                >
+                  <div className="featured-card-body">
+                    <div className="featured-card-left">
+                      <h3 className="featured-card-title">{app.title}</h3>
+                      <p className="featured-card-desc">{app.desc}</p>
+                      <div className="featured-card-footer">
+                        <Button
+                          type="primary"
+                          size="small"
+                          className="featured-card-btn"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(app.path)
+                          }}
+                        >
+                          点击查看
+                        </Button>
+                        <div className="featured-card-tags">
+                          {app.tags.map((tag) => (
+                            <span key={tag} className="featured-tag">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="featured-card-icon" style={{ background: app.iconBg }}>
+                      {app.icon}
                     </div>
                   </div>
                 </div>
-                <div className="featured-card-icon" style={{ background: app.iconBg }}>
-                  {app.icon}
-                </div>
-              </div>
+              ))}
             </div>
+          </div>
+
+          <button
+            type="button"
+            className="featured-arrow featured-arrow-right"
+            onClick={handleNext}
+            aria-label="下一组"
+          >
+            <RightOutlined />
+          </button>
+        </div>
+
+        <div className="featured-dots">
+          {featuredApps.map((_, i) => (
+            <span
+              key={i}
+              className={`featured-dot ${i === carouselIndex % totalCards ? 'active' : ''}`}
+              onClick={() => setCarouselIndex(i)}
+            />
           ))}
         </div>
       </div>

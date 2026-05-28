@@ -41,38 +41,136 @@
   height: 42px !important;
 }
 
-/* ===== 精选卡片区 ===== */
+/* ===== 精选卡片轮播区 ===== */
 .featured-section {
   padding: 0 32px 24px;
 }
 
-.featured-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+.featured-carousel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.featured-card {
+.featured-viewport {
+  flex: 1;
+  overflow: hidden;
+  margin: 0 -8px;
+  padding: 4px 0;
+}
+
+.featured-track {
+  display: flex;
+  width: 100%;
+  will-change: transform;
+}
+
+.featured-track > .featured-card {
+  flex: 0 0 calc(100% / 3);
+  box-sizing: border-box;
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.featured-track > .featured-card > .featured-card-body {
+  margin: 0 8px;
+}
+
+/* 让卡片本体在 track 模式下不再撑满，使用内层容器承载样式 */
+.featured-track > .featured-card {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: none;
+}
+
+.featured-track > .featured-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.featured-track > .featured-card .featured-card-body {
   background: #ffffff;
   border-radius: 16px;
   padding: 24px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
   border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s ease;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.featured-card:hover {
+.featured-track > .featured-card:hover .featured-card-body {
   transform: translateY(-3px);
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.1);
   border-color: #e0eaff;
 }
 
-.featured-card-body {
+/* 左右箭头按钮 */
+.featured-arrow {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #6b7280;
+  cursor: pointer;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.featured-arrow:hover {
+  color: #1677ff;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  box-shadow: 0 4px 14px rgba(22, 119, 255, 0.18);
+  transform: scale(1.05);
+}
+
+.featured-arrow:active {
+  transform: scale(0.96);
+}
+
+/* 指示点 */
+.featured-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.featured-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d1d5db;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.featured-dot:hover {
+  background: #9ca3af;
+}
+
+.featured-dot.active {
+  width: 22px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #1677ff, #4096ff);
 }
 
 .featured-card-left {
@@ -329,4 +427,17 @@
   color: #9ca3af;
   padding: 60px 0;
   font-size: 14px;
+}
+
+/* ===== 响应式：精选卡片轮播每屏数量 ===== */
+@media (max-width: 1100px) {
+  .featured-track > .featured-card {
+    flex: 0 0 calc(100% / 2);
+  }
+}
+
+@media (max-width: 720px) {
+  .featured-track > .featured-card {
+    flex: 0 0 100%;
+  }
 }
