@@ -14,6 +14,7 @@ import com.linglong.mcp.model.ToolExecutionRequest;
 import com.linglong.mcp.model.ToolExecutionResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -33,10 +34,29 @@ public class DockerTool {
 
     private DockerClient dockerClient;
 
+    /** 可覆盖的 Docker Host，默认依 OS 选择 */
+    @Value("${docker.host:}")
+    private String configuredDockerHost;
+
+    private static String defaultDockerHost() {
+        if (System.getProperty("os.name", "").toLowerCase().contains("win")) {
+            return "tcp://localhost:2375";
+        }
+        return "unix:///var/run/docker.sock";
+    }
+
     public DockerTool() {
+    }
+
+    @jakarta.annotation.PostConstruct
+    void init() {
+        String dockerHost = (configuredDockerHost != null && !configuredDockerHost.isBlank())
+                ? configuredDockerHost
+                : defaultDockerHost();
+        log.info("Docker 连接目标: {}", dockerHost);
         try {
             DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-                    .withDockerHost("unix:///var/run/docker.sock")
+                    .withDockerHost(dockerHost)
                     .build();
 
             DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()

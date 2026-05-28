@@ -29,6 +29,10 @@ db:
     username: linglong
     password: your-password
 
+# Docker 连接目标（Windows 自动切 tcp://localhost:2375，Linux 用 unix:///var/run/docker.sock）
+# docker:
+#   host: unix:///var/run/docker.sock
+
 # SpringDoc OpenAPI配置
 springdoc:
   api-docs:
