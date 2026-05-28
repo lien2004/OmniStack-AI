@@ -15,6 +15,7 @@ import {
   FileTextOutlined,
   LeftOutlined,
   RightOutlined,
+  FilePptOutlined,
 } from '@ant-design/icons'
 import './style.css'
 
@@ -176,6 +177,17 @@ const appList = [
     iconBg: '#52c41a1a',
     iconColor: '#52c41a',
     path: '/resume',
+  },
+  {
+    id: 9,
+    name: '灵龙PPT',
+    nameEn: 'LingLong PPT',
+    desc: '基于 DeepSeek V4 Pro，AI 智能生成演示文稿，支持导出 PPTX/PDF/HTML。',
+    category: 'agent',
+    icon: <FilePptOutlined />,
+    iconBg: '#1677ff1a',
+    iconColor: '#1677ff',
+    path: '/ppt',
   },
 ]
 

@@ -8,6 +8,7 @@ import AgentCenter from './pages/AgentCenter'
 import CodeFlow from './pages/CodeFlow'
 import ResumeBuilder from './pages/ResumeBuilder'
 import ImageGeneration from './pages/ImageGeneration'
+import PPTBuilder from './pages/PPTBuilder'
 import MCPHub from './pages/MCPHub'
 import Settings from './pages/Settings'
 import Chat from './pages/Chat'
@@ -35,6 +36,7 @@ function App() {
         <Route path="codeflow" element={<CodeFlow />} />
         <Route path="resume" element={<ResumeBuilder />} />
         <Route path="image-generation" element={<ImageGeneration />} />
+        <Route path="ppt" element={<PPTBuilder />} />
         <Route path="mcp" element={<MCPHub />} />
         <Route path="settings" element={<Settings />} />
         <Route path="profile" element={<Profile />} />
