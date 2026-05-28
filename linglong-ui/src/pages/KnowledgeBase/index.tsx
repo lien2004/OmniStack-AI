@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import {
+  Alert,
   Button,
   Card,
+  Drawer,
   Form,
   Input,
   Modal,
   Popconfirm,
+  Progress,
+  Radio,
   Select,
   Space,
   Statistic,
@@ -13,16 +17,20 @@ import {
   Tag,
   Tooltip,
   Typography,
+  Upload,
   message as antdMessage,
 } from 'antd'
+import type { UploadProps } from 'antd'
 import {
   AppstoreOutlined,
+  CloudUploadOutlined,
   DatabaseOutlined,
   DeleteOutlined,
   EditOutlined,
   FileTextOutlined,
   FolderOpenOutlined,
   HddOutlined,
+  InboxOutlined,
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons'
@@ -33,12 +41,31 @@ import {
   fetchKbList,
   fetchOverview,
   updateKb,
+  uploadDocument,
   type KnowledgeBaseItem,
   type OverviewStats,
 } from '@/services/knowledgeBase'
 import './kbList.css'
 
 const { Title, Text } = Typography
+const { Dragger } = Upload
+
+const ACCEPT = [
+  '.pdf', '.docx', '.doc', '.rtf',
+  '.xlsx', '.xls', '.xlsm',
+  '.pptx', '.ppt',
+  '.txt', '.md', '.markdown',
+  '.html', '.htm',
+  '.json', '.yaml', '.yml', '.xml', '.csv',
+].join(',')
+
+const CATEGORY_OPTIONS = [
+  { value: 'document', label: '通用文档' },
+  { value: 'technical', label: '技术文档' },
+  { value: 'business', label: '业务资料' },
+  { value: 'faq', label: '常见问题' },
+  { value: 'other', label: '其他' },
+]
 
 const EMBEDDING_MODELS = [
   { value: 'embedding-3', label: 'embedding-3 (智谱)' },
@@ -72,6 +99,14 @@ const KnowledgeBaseListPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<KnowledgeBaseItem | null>(null)
   const [form] = Form.useForm()
+
+  // 快速上传
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [uploadKbId, setUploadKbId] = useState<string | undefined>(undefined)
+  const [uploadName, setUploadName] = useState('')
+  const [uploadCategory, setUploadCategory] = useState('document')
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   const loadAll = async () => {
     setLoading(true)
@@ -132,6 +167,58 @@ const KnowledgeBaseListPage: React.FC = () => {
     } catch (e: any) {
       antdMessage.error(e?.response?.data?.message || '删除失败')
     }
+  }
+
+  const openUpload = () => {
+    if (list.length === 0) {
+      antdMessage.warning('请先创建知识库')
+      return
+    }
+    // 默认选第一个，若已有选择则保留
+    setUploadKbId(prev => prev ?? list[0].id)
+    setUploadName('')
+    setUploadCategory('document')
+    setUploadOpen(true)
+  }
+
+  const uploadProps: UploadProps = {
+    name: 'file',
+    multiple: true,
+    accept: ACCEPT,
+    showUploadList: false,
+    customRequest: async ({ file, onSuccess, onError }: any) => {
+      if (!uploadKbId) {
+        antdMessage.warning('请先选择目标知识库')
+        onError?.(new Error('未选择知识库'))
+        return
+      }
+      setUploading(true)
+      setUploadProgress(5)
+      try {
+        await uploadDocument(
+          uploadKbId,
+          file as File,
+          uploadName.trim() || undefined,
+          uploadCategory,
+          (e: any) => {
+            if (e.total) {
+              setUploadProgress(Math.min(95, Math.round((e.loaded / e.total) * 95)))
+            }
+          }
+        )
+        setUploadProgress(100)
+        antdMessage.success(`「${(file as File).name}」已上传并向量化`)
+        setUploadName('')
+        loadAll()
+        onSuccess?.({})
+      } catch (e: any) {
+        antdMessage.error(e?.response?.data?.message || '上传失败')
+        onError?.(e)
+      } finally {
+        setUploading(false)
+        setTimeout(() => setUploadProgress(0), 1500)
+      }
+    },
   }
 
   const columns = [
@@ -295,6 +382,9 @@ const KnowledgeBaseListPage: React.FC = () => {
         extra={
           <Space>
             <Button icon={<ReloadOutlined />} onClick={loadAll}>刷新</Button>
+            <Button icon={<CloudUploadOutlined />} onClick={openUpload}>
+              上传文件
+            </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
               新建知识库
             </Button>
@@ -365,6 +455,90 @@ const KnowledgeBaseListPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* 快速上传抽屉 */}
+      <Drawer
+        title="上传文件到知识库"
+        width={520}
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        destroyOnClose
+      >
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          <Alert
+            type="info"
+            showIcon
+            message="文件上传后将自动解析、按 800 字符切分（重叠 100），并使用所选知识库配置的 Embedding 模型生成向量"
+          />
+
+          <div>
+            <Text strong style={{ display: 'block', marginBottom: 6 }}>
+              目标知识库 <Text type="danger">*</Text>
+            </Text>
+            <Select
+              placeholder="请选择要上传到哪个知识库"
+              style={{ width: '100%' }}
+              value={uploadKbId}
+              onChange={setUploadKbId}
+              options={list.map(kb => ({
+                value: kb.id,
+                label: (
+                  <Space>
+                    <DatabaseOutlined style={{ color: '#1677ff' }} />
+                    {kb.name}
+                    <Tag color="purple">{kb.embeddingModel}</Tag>
+                  </Space>
+                ),
+              }))}
+            />
+          </div>
+
+          <div>
+            <Text strong style={{ display: 'block', marginBottom: 6 }}>文档名称（可选）</Text>
+            <Input
+              placeholder="留空则使用文件名"
+              value={uploadName}
+              onChange={e => setUploadName(e.target.value)}
+              allowClear
+            />
+          </div>
+
+          <div>
+            <Text strong style={{ display: 'block', marginBottom: 6 }}>文档分类</Text>
+            <Radio.Group
+              value={uploadCategory}
+              onChange={e => setUploadCategory(e.target.value)}
+              optionType="button"
+              buttonStyle="solid"
+            >
+              {CATEGORY_OPTIONS.map(opt => (
+                <Radio.Button key={opt.value} value={opt.value}>
+                  {opt.label}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
+          </div>
+
+          <Dragger {...uploadProps} disabled={uploading || !uploadKbId}>
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined style={{ color: uploading ? '#d9d9d9' : '#1677ff' }} />
+            </p>
+            <p className="ant-upload-text">
+              {uploading ? '正在解析与向量化...' : '点击或拖拽文件到此处上传'}
+            </p>
+            <p className="ant-upload-hint">
+              支持 PDF / Word / Excel / PPT / TXT / Markdown / HTML / JSON / CSV，可多文件
+            </p>
+          </Dragger>
+
+          {uploadProgress > 0 && (
+            <Progress
+              percent={uploadProgress}
+              status={uploadProgress < 100 ? 'active' : 'success'}
+            />
+          )}
+        </Space>
+      </Drawer>
     </div>
   )
 }
