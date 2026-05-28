@@ -68,9 +68,12 @@ public class DockerTool {
                     .build();
 
             dockerClient = DockerClientImpl.getInstance(config, httpClient);
-            log.info("Docker客户端初始化成功");
+            // 连通性检测
+            dockerClient.pingCmd().exec();
+            log.info("Docker客户端初始化成功（{}）", dockerHost);
         } catch (Exception e) {
-            log.warn("Docker客户端初始化失败(可能Docker未运行): {}", e.getMessage());
+            dockerClient = null;
+            log.warn("Docker客户端不可用（{}）: {}", dockerHost, e.getMessage());
         }
     }
 
