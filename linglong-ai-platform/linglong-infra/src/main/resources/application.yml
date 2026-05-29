@@ -1,13 +1,13 @@
 spring:
   application:
     name: linglong-infra
-  
+
   # Redis配置
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: your-password
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       database: 0
       timeout: 60000ms
       lettuce:
@@ -19,11 +19,11 @@ spring:
 
   # 数据库配置
   datasource:
-    url: jdbc:postgresql://localhost:5432/linglongpg
-    username: linglongpg
-    password: your-password
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/linglongpg
+    username: ${DB_USERNAME:linglong}
+    password: ${DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
-  
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -35,9 +35,9 @@ spring:
 
 # MinIO配置
 minio:
-  endpoint: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket-name: linglong-files
 
 # Git配置

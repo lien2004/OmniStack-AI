@@ -19,17 +19,17 @@ spring:
 
   # PostgreSQL数据库配置 - 用于向量存储
   datasource:
-    url: jdbc:postgresql://localhost:5432/linglongpg
-    username: linglong
-    password: your-password
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/linglongpg
+    username: ${DB_USERNAME:linglong}
+    password: ${DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
 
   # Redis配置 - 用于缓存对话历史、Token使用量等
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: your-password
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       database: 1
       timeout: 60000ms
       lettuce:
@@ -43,7 +43,7 @@ spring:
   ai:
     openai:
       # 智谱AI OpenAI 兼容接口 - 仅用于聊天（Chat）
-      api-key: your-api-key
+      api-key: ${ZHIPU_API_KEY:}
       base-url: https://open.bigmodel.cn/api/paas
       embedding:
         enabled: false  # 关闭 Spring AI 内置 OpenAI Embedding，改用自定义 ZhipuEmbeddingClient
@@ -51,30 +51,30 @@ spring:
 # ========== MySQL配置 - 对话历史持久化 ==========
 chat:
   datasource:
-    url: jdbc:mysql://localhost:3306/linglong?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: your-password
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/linglong?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-# ========== 当前使用：CodeFlow 灵龙AI ==========
+# ========== CodeFlow 灵龙AI ==========
 bailian:
-  base-url: https://codeflow.asia/v1
-  api-key: your-api-key
+  base-url: ${CODE_FLOW_BASE_URL:https://codeflow.asia/v1}
+  api-key: ${CODE_FLOW_API_KEY:}
   model: gpt-5.4-mini
   display-name: 灵龙AI
 
 # ========== DeepSeek 配置 ==========
 deepseek:
-  base-url: https://api.deepseek.com
-  api-key: your-api-key
+  base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
+  api-key: ${DEEPSEEK_API_KEY:}
   model: deepseek-v4-pro
   thinking-enabled: false
   reasoning-effort: high
 
 # ========== 通义千问/阿里云配置 ==========
 aliyun:
-  base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
-  api-key: your-api-key
+  base-url: ${ALIYUN_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+  api-key: ${ALIYUN_API_KEY:}
 
 # ========== 多模型路由配置 ==========
 # 模型提供商路由：GLM系列 → 智谱AI; gpt/linglong/claude系列 → CodeFlow/灵龙AI; deepseek系列 → DeepSeek; qwen/qwq系列 → 通义千问
@@ -94,7 +94,7 @@ vector:
 
 # 智谱AI配置（聊天 + 图片生成）
 zhipu:
-  api-key: your-api-key
+  api-key: ${ZHIPU_API_KEY:}
   model: glm-4.6
   temperature: 0.7
   max-tokens: 2000
@@ -104,7 +104,7 @@ zhipu:
   # 推荐尺寸：1024x1024 | 1280x1280 | 1568x1056 | 1056x1568 | 1728x960 | 960x1728
   # 自定义参数：长宽需在 512-2048 范围内，且均为 32 的整数倍
   image:
-    api-key: your-api-key
+    api-key: ${ZHIPU_API_KEY:}
     model: glm-image
     size: 1024x1024
 
@@ -134,7 +134,7 @@ llm:
 # MCP Server 配置
 mcp:
   server:
-    url: http://localhost:8083
+    url: http://${SERVICE_HOST:localhost}:8083
 
 # SpringDoc OpenAPI配置
 springdoc:

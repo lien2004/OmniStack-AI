@@ -4,14 +4,14 @@ server:
 spring:
   application:
     name: linglong-mcp-server
-  
+
   # MySQL数据库配置
   datasource:
-    url: jdbc:mysql://localhost:3306/linglong?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
-    username: root
-    password: your-password
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/linglong?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
-  
+
   # JPA配置
   jpa:
     hibernate:
@@ -25,9 +25,9 @@ spring:
 # DatabaseTool 默认连接目标（PG 向量库）
 db:
   default:
-    url: jdbc:postgresql://localhost:5432/linglongpg
-    username: linglong
-    password: your-password
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/linglongpg
+    username: ${DB_USERNAME:linglong}
+    password: ${DB_PASSWORD:}
 
 # Docker 连接目标（Windows 自动切 tcp://localhost:2375，Linux 用 unix:///var/run/docker.sock）
 # docker:
@@ -43,7 +43,7 @@ springdoc:
 
 # LLM配置（用于智能图表生成）
 llm:
-  api-key: your-api-key
+  api-key: ${ZHIPU_API_KEY:}
   api-url: https://open.bigmodel.cn/api/paas/v4/chat/completions
   model: glm-5.1
 

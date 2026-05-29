@@ -4,13 +4,13 @@ server:
 spring:
   application:
     name: linglong-gateway
-  
+
   # Redis配置
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: your-password
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       database: 2
       timeout: 60000ms
       lettuce:
@@ -29,7 +29,7 @@ spring:
         # 匹配: /api/user/** 和 /api/auth/**
         # ==========================================
         - id: linglong-user
-          uri: http://localhost:8081
+          uri: http://${SERVICE_HOST:localhost}:8081
           predicates:
             - Path=/api/user/**, /api/auth/**
           filters:
@@ -41,7 +41,7 @@ spring:
         # 匹配: /api/agent/** 和 /api/v1/agents/**
         # ==========================================
         - id: linglong-agent
-          uri: http://localhost:8085
+          uri: http://${SERVICE_HOST:localhost}:8085
           predicates:
             - Path=/api/agent/**, /api/v1/agents/**
           filters:
@@ -53,7 +53,7 @@ spring:
         # 匹配: /ai/**
         # ==========================================
         - id: linglong-llm-core
-          uri: http://localhost:8084
+          uri: http://${SERVICE_HOST:localhost}:8084
           predicates:
             - Path=/ai/**
           filters:
@@ -67,7 +67,7 @@ spring:
         #       路径已包含/api前缀，不需要StripPrefix
         # ==========================================
         - id: linglong-mcp
-          uri: http://localhost:8083
+          uri: http://${SERVICE_HOST:localhost}:8083
           predicates:
             - Path=/api/mcp/**
 
@@ -85,7 +85,7 @@ spring:
 
 # JWT配置 - 生产环境请务必修改 secret
 jwt:
-  secret: your-secret-key-here-change-this
+  secret: ${JWT_SECRET:your-secret-key-here-change-this}
   expiration: 86400000
   tokenHeader: Authorization
 
