@@ -90,11 +90,7 @@ LingLong AI Platform/
 ### 大模型集成
 
 | 模型提供商 | 模型 | 用途 |
-|-----------|------|------|
-| CodeFlow / 灵龙AI | gpt-5.5, claude-*, linglong-* | 主对话与Agent推理 |
-| 智谱AI (Zhipu) | glm-4.6, glm-4-flash | 对话补全、Embedding、图像生成 |
-| DeepSeek | deepseek-v4-pro | 深度推理（Thinking模式） |
-| 通义千问 (Aliyun) | qwen-*, qwq-* | 对话补全 |
+
 
 ---
 
@@ -164,13 +160,8 @@ CREATE DATABASE linglongpg;
 CREATE EXTENSION vector;
 ```
 
-### 3. 配置LLM API密钥
+### 3. 配置LLM
 
-在各服务的 `application.yml` 中配置对应的大模型API密钥：
-- CodeFlow API Key
-- 智谱AI API Key
-- DeepSeek API Key
-- 通义千问 API Key
 
 ### 4. 启动服务
 
